@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>Казино</title>
+    <style>
+        /* Шрифты и переменные */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;700&display=swap');
+
+        :root {
+            --machine-body: #8D2B0B;
+            --machine-body-dark: #541a05;
+            --gold-trim: #FFD700;
+            --gold-trim-dark: #b59800;
+            --screen-bg: #1a1a1a;
+            --lever-stick: #c0c0c0;
+            --lever-ball: #dc143c; /* Crimson Red */
+        }
+
+        /* Базовые стили */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh; /* Используем vh для полной высоты экрана */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle, #4a2c2a, #1c110a);
+            font-family: 'Roboto', sans-serif;
+            overflow: hidden;
+        }
+
+        /* Контейнер для центрирования и масштабирования */
+        .casino-container {
+            position: relative;
+            transform: scale(0.9); /* Начальный масштаб */
+            transition: transform 0.3s;
+        }
+
+        /* Главный корпус слот-машины */
+        .slot-machine {
+            width: 340px;
+            background: linear-gradient(145deg, var(--machine-body), var(--machine-body-dark));
+            border-radius: 30px;
+            padding: 20px;
+            border: 5px solid var(--gold-trim-dark);
+            box-shadow:
+                0 20px 40px rgba(0,0,0,0.6),
+                inset 0 0 25px rgba(0,0,0,0.5),
+                0 0 10px var(--gold-trim);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative; /* Для позиционирования рычага */
+            z-index: 2;
+        }
+
+        /* Дисплей баланса */
+        #balance-display {
+            font-family: 'Orbitron', sans-serif;
+            color: #00ff00;
+            font-size: 24px;
+            margin-bottom: 20px;
+            background: #000;
+            padding: 5px 20px;
+            border-radius: 5px;
+            border: 2px solid #333;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        /* Экран с барабанами */
+        .reels-window {
+            background: #000;
+            border: 8px solid var(--gold-trim);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+            margin-bottom: 25px;
+        }
+
+        .reels {
+            display: flex;
+            width: 270px; /* 90px * 3 */
+            height: 90px;
+            overflow: hidden;
+            border-radius: 5px;
+        }
+
+        .reel {
+            width: 90px;
+            height: 9000px;
+            /* Новая, более качественная графика для символов */
+            background-image: url('https://i.imgur.com/vB1q5dF.png');
+            background-size: 90px 540px; /* 90px * 6 символов */
+            background-repeat: repeat-y;
+        }
+
+        /* Класс для эффекта размытия во время вращения */
+        .reel.spinning {
+            filter: blur(2px);
+        }
+
+        /* Сообщение о выигрыше/проигрыше */
+        #message {
+            height: 30px;
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            color: #fff;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+        }
+
+        /* Рычаг - контейнер и стили */
+        .lever-assembly {
+            position: absolute;
+            right: -75px;
+            top: 50px;
+            width: 80px;
+            height: 250px;
+            z-index: 1;
+        }
+
+        .lever-base {
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle, #e0e0e0, #a0a0a0);
+            border-radius: 50%;
+            position: absolute;
+            bottom: 0;
+            left: 15px;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.5);
+        }
+
+        .lever {
+            width: 80px;
+            height: 220px;
+            position: absolute;
+            bottom: 25px;
+            left: 0;
+            cursor: pointer;
+            transform-origin: bottom center;
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* "Пружинящая" анимация */
+        }
+
+        .lever-stick {
+            width: 14px;
+            height: 180px;
+            background: linear-gradient(90deg, #e0e0e0, #707070);
+            border-radius: 7px;
+            position: absolute;
+            bottom: 0;
+            left: calc(50% - 7px);
+        }
+
+        .lever-ball {
+            width: 70px;
+            height: 70px;
+            background: radial-gradient(circle at 20px 20px, #ff506c, var(--lever-ball));
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: calc(50% - 35px);
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.4), 0 5px 10px rgba(0,0,0,0.4);
+        }
+
+        .lever.pulled {
+            transform: rotate(60deg);
+        }
+
+        /* Адаптация для мобильных устройств */
+        @media (max-width: 450px) {
+            .casino-container {
+                transform: scale(0.8) translateY(-50px);
+            }
+        }
+        @media (max-height: 500px) {
+             .casino-container {
+                transform: scale(0.7);
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="casino-container">
+        <div class="slot-machine">
+            <div id="balance-display">Баланс: 1000 💰</div>
+            <div class="reels-window">
+                <div class="reels">
+                    <div class="reel" id="reel1"></div>
+                    <div class="reel" id="reel2"></div>
+                    <div class="reel" id="reel3"></div>
+                </div>
+            </div>
+            <div id="message"></div>
+        </div>
+
+        <div class="lever-assembly">
+            <div class="lever-base"></div>
+            <div class="lever" id="lever">
+                <div class="lever-stick"></div>
+                <div class="lever-ball"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const symbols = ['7️⃣', '🔔', '🍉', '🍋', '🍒', ' BAR']; // 6 символов, заменил на более классические
+            const symbolHeight = 90;
+
+            const reels = [
+                document.getElementById('reel1'),
+                document.getElementById('reel2'),
+                document.getElementById('reel3')
+            ];
+
+            const lever = document.getElementById('lever');
+            const message = document.getElementById('message');
+            const balanceDisplay = document.getElementById('balance-display');
+
+            let balance = 1000;
+            let isSpinning = false;
+            const spinCost = 50;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialBalance = parseInt(urlParams.get('balance'));
+            if (!isNaN(initialBalance)) {
+                balance = initialBalance;
+            }
+            updateBalanceDisplay();
+
+            lever.addEventListener('click', spin);
+
+            function updateBalanceDisplay() {
+                balanceDisplay.textContent = `Баланс: ${balance} 💰`;
+            }
+
+            function spin() {
+                if (isSpinning) return;
+                if (balance < spinCost) {
+                    message.textContent = "Недостаточно средств!";
+                    return;
+                }
+
+                isSpinning = true;
+                balance -= spinCost;
+                updateBalanceDisplay();
+                message.textContent = "";
+
+                // Анимация рычага
+                lever.classList.add('pulled');
+                setTimeout(() => lever.classList.remove('pulled'), 400);
+
+                let results = [];
+
+                reels.forEach((reel, i) => {
+                    reel.classList.add('spinning'); // Добавляем размытие
+                    // Улучшенная анимация вращения
+                    const spinDuration = 2.5 + i * 0.5; // Барабаны останавливаются последовательно
+                    reel.style.transition = `background-position-y ${spinDuration}s cubic-bezier(.42,0, .58,1)`;
+
+                    const randomSymbolIndex = Math.floor(Math.random() * symbols.length);
+                    results.push(randomSymbolIndex);
+
+                    // Вычисляем конечное положение
+                    const finalBgPos = -(reel.offsetHeight - symbolHeight) + (randomSymbolIndex * symbolHeight);
+
+                    // Добавляем несколько полных прокруток для визуального эффекта
+                    const extraSpins = 10;
+                    const spinDistance = extraSpins * (symbolHeight * symbols.length);
+
+                    // Устанавливаем начальное положение "за кадром" для бесшовной прокрутки
+                    reel.style.backgroundPositionY = `${finalBgPos + spinDistance}px`;
+                });
+
+                // Проверяем результат после окончания анимации самого длинного барабана
+                setTimeout(() => {
+                    reels.forEach(reel => reel.classList.remove('spinning')); // Убираем размытие
+                    checkWin(results);
+                    isSpinning = false;
+                }, 3500); // 2.5s (первый) + 0.5s (второй) + 0.5s (третий) = 3.5s
+            }
+
+            function checkWin(results) {
+                const [r1, r2, r3] = results.map(index => symbols[index]);
+
+                let winAmount = 0;
+
+                if (r1 === r2 && r2 === r3) { // Три в ряд
+                    if (r1 === '7️⃣') winAmount = 5000;
+                    else if (r1 === ' BAR') winAmount = 2500;
+                    else if (r1 === '🔔') winAmount = 1000;
+                    else if (r1 === '🍉') winAmount = 500;
+                    else if (r1 === '🍋') winAmount = 250;
+                    else if (r1 === '🍒') winAmount = 100;
+                } else if ((r1 === r2 && r1 === '🍒') || (r2 === r3 && r2 === '🍒')) { // Две вишенки
+                    winAmount = 75;
+                }
+
+                if (winAmount > 0) {
+                    balance += winAmount;
+                    message.textContent = `Выигрыш: ${winAmount}!`;
+                    message.style.color = '#FFD700';
+                } else {
+                    message.textContent = "Попробуйте еще!";
+                    message.style.color = 'white';
+                }
+                updateBalanceDisplay();
+            }
+        });
+    </script>
+</body>
+</html>
