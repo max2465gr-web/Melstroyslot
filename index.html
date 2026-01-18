@@ -33,7 +33,6 @@
             user-select: none;
         }
 
-        /* ЗВЕЗДЫ */
         .star {
             position: absolute;
             color: #ffd700;
@@ -47,7 +46,6 @@
             50% { opacity: 1; transform: scale(1.2); }
         }
 
-        /* ВЫВЕСКА */
         .neon-sign {
             font-size: 42px;
             color: #fff;
@@ -66,7 +64,6 @@
             position: relative;
         }
 
-        /* МАШИНА */
         .machine-wrapper {
             position: relative;
             display: flex;
@@ -174,7 +171,6 @@
             text-transform: uppercase;
         }
 
-        /* РЫЧАГ */
         .lever-container {
             position: absolute;
             right: -30px;
@@ -294,7 +290,6 @@
 
     <script>
         // === НАСТРОЙКИ ===
-        // Убрал редкие символы, чтобы повысить шансы
         const SYMBOLS = ['💎', '7️⃣', '🔔', '🍒', '🍋', '💰'];
         const SYMBOL_HEIGHT = 80;
         const PAYOUTS = {
@@ -315,60 +310,108 @@
 
         let balance = 1000;
         let isSpinning = false;
-        let spinSoundInterval = null;
 
-        // === ЗВУКОВОЙ ДВИЖОК ===
+        // Переменные для аудио
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
+        let motorOscillator = null;
+        let motorGain = null;
+        let tickInterval = null;
 
-        function playTone(freq, type, duration, vol = 0.1) {
+        // === ПРОДВИНУТЫЙ ЗВУКОВОЙ ДВИЖОК ===
+
+        // 1. Простой тон (для эффектов)
+        function playTone(freq, type, duration, vol = 0.1, decay = 0.01) {
             if (!audioCtx) return;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = type;
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
             gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start();
             osc.stop(audioCtx.currentTime + duration);
         }
 
-        // Звук механической трещотки (прокрутка)
-        function startSpinSound() {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            if(spinSoundInterval) clearInterval(spinSoundInterval);
-
-            spinSoundInterval = setInterval(() => {
-                // Короткий низкий "тук"
-                playTone(150, 'square', 0.05, 0.05);
-                // Добавим немного шума для механичности (второй тон)
-                setTimeout(() => playTone(100, 'sawtooth', 0.03, 0.03), 10);
-            }, 90); // Частота тиканья
+        // 2. Звук "Трещотки" при натягивании рычага
+        function playRatchetSound() {
+            // Резкий, короткий металлический щелчок
+            playTone(800, 'sawtooth', 0.05, 0.05);
+            playTone(150, 'square', 0.05, 0.08); // Добавляем "тела" звуку
         }
 
-        function stopSpinSound() {
-            if(spinSoundInterval) clearInterval(spinSoundInterval);
+        // 3. Звук удара рычага (отпускание)
+        function playLeverClunk() {
+            playTone(100, 'square', 0.2, 0.2); // Глухой удар
+            setTimeout(() => playTone(50, 'sine', 0.3, 0.3), 50); // Эхо пружины
+        }
+
+        // 4. Реалистичный звук мотора и вращения
+        function startMotorSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            // A. Гул мотора (Drone)
+            motorOscillator = audioCtx.createOscillator();
+            motorGain = audioCtx.createGain();
+
+            motorOscillator.type = 'sawtooth';
+            motorOscillator.frequency.value = 60; // Низкий гул (60Hz)
+
+            // Фильтр, чтобы гул был мягким, а не резким
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 250;
+
+            motorOscillator.connect(filter);
+            filter.connect(motorGain);
+            motorGain.connect(audioCtx.destination);
+
+            // Плавный старт мотора
+            motorGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            motorGain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.5);
+
+            motorOscillator.start();
+
+            // B. Механическое цоканье (Reel noise)
+            if(tickInterval) clearInterval(tickInterval);
+            tickInterval = setInterval(() => {
+                // Создаем шум трения/вращения
+                const randFreq = 200 + Math.random() * 100;
+                playTone(randFreq, 'square', 0.05, 0.03);
+            }, 80); // Быстрое цоканье
+        }
+
+        function stopMotorSound() {
+            if(motorOscillator) {
+                // Плавное затухание мотора
+                const currTime = audioCtx.currentTime;
+                motorGain.gain.setValueAtTime(motorGain.gain.value, currTime);
+                motorGain.gain.linearRampToValueAtTime(0, currTime + 0.5);
+                motorOscillator.stop(currTime + 0.5);
+                motorOscillator = null;
+            }
+            if(tickInterval) clearInterval(tickInterval);
+
+            // Финальный звук остановки (тормоз барабанов)
+            playTone(100, 'sawtooth', 0.3, 0.1);
         }
 
         function playWinSound(amount) {
             const notes = [523.25, 659.25, 783.99, 1046.50];
             notes.forEach((note, i) => {
-                setTimeout(() => playTone(note, 'sine', 0.3, 0.1), i * 150);
+                setTimeout(() => playTone(note, 'sine', 0.4, 0.1), i * 150);
             });
             if (amount >= 100) {
-                for(let k=0; k<5; k++) {
-                    setTimeout(() => playTone(1200 + Math.random()*500, 'triangle', 0.1, 0.05), 600 + k*100);
+                // Звук монет
+                for(let k=0; k<8; k++) {
+                    setTimeout(() => playTone(1500 + Math.random()*1000, 'triangle', 0.1, 0.05), 600 + k*80);
                 }
             }
         }
 
-        function playLeverSound() {
-            playTone(80, 'sawtooth', 0.15, 0.1);
-        }
-
-        // === ЛОГИКА ===
+        // === ИНИЦИАЛИЗАЦИЯ ===
         function init() {
             reels.forEach(reel => {
                 reel.innerHTML = generateStripHTML(20);
@@ -408,16 +451,17 @@
             }, 3000);
         }
 
-        // === РЫЧАГ ===
+        // === ЛОГИКА РЫЧАГА ===
         let isDragging = false;
         let startY = 0;
+        let lastSoundAngle = 0; // Для отслеживания трещотки
 
         function resetLever() {
-            leverHandle.style.transition = 'transform 0.5s cubic-bezier(0.5, 1.5, 0.5, 1)';
+            leverHandle.style.transition = 'transform 0.4s cubic-bezier(0.5, 1.5, 0.5, 1)'; // Эффект пружины
             leverHandle.style.transform = 'rotate(0deg)';
             setTimeout(() => {
                 leverHandle.style.transition = '';
-            }, 500);
+            }, 400);
         }
 
         function onStart(e) {
@@ -427,6 +471,7 @@
             isDragging = true;
             startY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
             leverKnob.style.cursor = 'grabbing';
+            lastSoundAngle = 0;
         }
 
         function onMove(e) {
@@ -440,6 +485,12 @@
             if (angle < 0) angle = 0;
             if (angle > 130) angle = 130;
 
+            // Логика трещотки: звук каждые 15 градусов
+            if (Math.abs(angle - lastSoundAngle) > 15) {
+                playRatchetSound();
+                lastSoundAngle = angle;
+            }
+
             leverHandle.style.transform = `rotate(${angle}deg)`;
         }
 
@@ -452,8 +503,13 @@
             const dist = endY - startY;
 
             if (dist > 150) {
-                playLeverSound();
-                startSpin();
+                // 1. Сначала звук удара рычага
+                playLeverClunk();
+
+                // 2. Небольшая задержка перед стартом мотора (реализм механики)
+                setTimeout(() => {
+                    startSpin();
+                }, 200);
             }
             resetLever();
         }
@@ -467,7 +523,7 @@
         document.addEventListener('touchend', onEnd);
 
 
-        // === СПИН ===
+        // === ЛОГИКА СПИНА ===
         function startSpin() {
             if(balance < 50) {
                 showStatus("НЕДОСТАТОЧНО СРЕДСТВ!", "red");
@@ -480,23 +536,17 @@
             payline.style.display = 'none';
             statusEl.style.opacity = '0';
 
-            startSpinSound(); // Запуск трещотки
+            // ЗАПУСК РЕАЛИСТИЧНОГО ЗВУКА
+            startMotorSound();
 
-            // Генерируем случайный результат
             let finalSymbols = [];
-
-            // === АЛГОРИТМ ПОВЫШЕНИЯ ШАНСОВ ===
-            // С вероятностью 35% принудительно даем выигрыш (пару или тройку)
             const luckyChance = Math.random();
 
             if (luckyChance < 0.35) {
-                // Гарантированная пара
                 const sym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
                 finalSymbols = [sym, sym, SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]];
-                // Перемешаем порядок, чтобы пара не всегда была в начале
                 if(Math.random() > 0.5) finalSymbols = [sym, SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)], sym];
             } else {
-                // Честный рандом (но символов теперь меньше, так что шансы и так выше)
                 for(let i=0; i<3; i++) {
                     finalSymbols.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
                 }
@@ -530,7 +580,7 @@
             });
 
             setTimeout(() => {
-                stopSpinSound(); // Остановить звук
+                stopMotorSound(); // Глушим мотор
                 checkWin(finalSymbols);
                 isSpinning = false;
             }, 3500);
@@ -547,7 +597,7 @@
                 payline.style.display = 'block';
                 playWinSound(win);
             } else if (s1 === s2 || s2 === s3 || s1 === s3) {
-                 win = 30; // Увеличил минимальный выигрыш
+                 win = 30;
                  showStatus(`ВЫИГРЫШ +${win}`, '#ffd700');
                  playWinSound(win);
             } else {
