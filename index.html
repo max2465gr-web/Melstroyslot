@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Melstroy Slot</title>
+    <!-- Подключаем скрипт Telegram WebApp -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap');
 
@@ -334,7 +336,7 @@
 
             <div class="controls-panel">
                 <div class="balance-box">
-                    БАЛАНС: <span id="balance">1000</span>
+                    БАЛАНС: <span id="balance">...</span>
                 </div>
                 <div class="bet-controls">
                     <div class="bet-input-wrapper">
@@ -359,9 +361,13 @@
         </div>
     </div>
 
-    <div id="status">ТЯНИ РЫЧАГ!</div>
+    <div id="status">ЗАГРУЗКА...</div>
 
     <script>
+        // === Инициализация Telegram WebApp ===
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Развернуть на весь экран
+
         const SYMBOLS = ['💎', '7️⃣', '🔔', '🍒', '🍋', '💰'];
         const SYMBOL_HEIGHT = 80;
 
@@ -386,15 +392,16 @@
         const leverHandle = document.getElementById('leverHandle');
         const leverKnob = document.getElementById('leverKnob');
 
-        let balance = 1000;
+        let balance = 1000; // Дефолтное значение
         let isSpinning = false;
 
-        // Аудио контекст
+        // === АУДИО ===
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
         let spinInterval = null;
         let noiseBuffer = null;
 
+        // ... (Функции аудио те же самые) ...
         function createNoiseBuffer() {
             if(noiseBuffer) return;
             const bufferSize = audioCtx.sampleRate;
@@ -404,7 +411,6 @@
                 output[i] = Math.random() * 2 - 1;
             }
         }
-
         function playFilteredNoise(filterFreq, duration, vol) {
             if (!audioCtx) return;
             createNoiseBuffer();
@@ -422,7 +428,6 @@
             gain.connect(audioCtx.destination);
             noise.start();
         }
-
         function playTone(freq, type, duration, vol = 0.1) {
             if (!audioCtx) return;
             const osc = audioCtx.createOscillator();
@@ -436,7 +441,6 @@
             osc.start();
             osc.stop(audioCtx.currentTime + duration);
         }
-
         function playRatchetSound() {
             const freq = 2000 + Math.random() * 500;
             playFilteredNoise(freq, 0.05, 0.3);
@@ -445,7 +449,6 @@
             playTone(60, 'triangle', 0.2, 0.4);
             playFilteredNoise(800, 0.1, 0.3);
         }
-
         function startSpinSound() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             if(spinInterval) clearInterval(spinInterval);
@@ -457,12 +460,10 @@
                 note++;
             }, 80);
         }
-
         function stopSpinSound() {
             if(spinInterval) clearInterval(spinInterval);
             playTone(800, 'sine', 0.2, 0.1);
         }
-
         function playWinSound(amount) {
             const notes = [523.25, 659.25, 783.99, 1046.50];
             notes.forEach((note, i) => {
@@ -475,7 +476,9 @@
             }
         }
 
-        // === ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЕ ===
+        // === СИСТЕМА СОХРАНЕНИЯ ===
+
+        // 1. Загрузка данных (Cloud -> Local -> Default)
         function init() {
             createNoiseBuffer();
             reels.forEach(reel => {
@@ -483,30 +486,50 @@
                 setReelPosition(reel, 10);
             });
 
-            // 1. Приоритет URL (если бот передал)
-            const urlParams = new URLSearchParams(window.location.search);
-            const urlBal = parseInt(urlParams.get('balance'));
-
-            // 2. Локальное сохранение
-            const localBal = parseInt(localStorage.getItem('melstroy_slot_balance'));
-
-            if(!isNaN(urlBal)) {
-                balance = urlBal;
-            } else if(!isNaN(localBal)) {
-                balance = localBal;
+            // Пытаемся получить данные из CloudStorage (Асинхронно)
+            if (tg.CloudStorage) {
+                tg.CloudStorage.getItem('melstroy_balance', (error, value) => {
+                    if (!error && value) {
+                        setBalance(parseInt(value));
+                    } else {
+                        // Если в облаке нет, пробуем LocalStorage
+                        loadFromLocal();
+                    }
+                    showStatus("ТЯНИ РЫЧАГ!", "#fff");
+                });
             } else {
-                balance = 1000;
+                // Если старая версия Telegram или браузер
+                loadFromLocal();
+                showStatus("ТЯНИ РЫЧАГ!", "#fff");
             }
+        }
 
-            // Защита от банкротства
-            if(balance < 10) balance = 1000;
+        function loadFromLocal() {
+            const localBal = localStorage.getItem('melstroy_balance');
+            if (localBal) {
+                setBalance(parseInt(localBal));
+            } else {
+                setBalance(1000); // Стартовый баланс
+            }
+        }
 
-            saveBalance(); // Сразу сохраним актуальное
+        function setBalance(val) {
+            if (isNaN(val) || val < 10) val = 1000; // Защита от банкротства
+            balance = val;
             updateUI();
         }
 
+        // 2. Сохранение данных (Cloud + Local)
         function saveBalance() {
-            localStorage.setItem('melstroy_slot_balance', balance);
+            // Сохраняем в LocalStorage (быстро)
+            localStorage.setItem('melstroy_balance', balance);
+
+            // Сохраняем в Telegram CloudStorage (надежно)
+            if (tg.CloudStorage) {
+                tg.CloudStorage.setItem('melstroy_balance', balance.toString(), (err, stored) => {
+                    if(err) console.error("Cloud Error", err);
+                });
+            }
         }
 
         function updateUI() {
@@ -515,15 +538,12 @@
 
         function adjustBet(action) {
             let currentBet = parseInt(betInput.value) || 10;
-
             if(action === 'min') currentBet = 10;
             if(action === 'max') currentBet = balance > 0 ? balance : 10;
             if(action === 'double') currentBet *= 2;
             if(action === 'half') currentBet = Math.floor(currentBet / 2);
-
             if(currentBet < 10) currentBet = 10;
             if(currentBet > balance && balance > 0) currentBet = balance;
-
             betInput.value = currentBet;
         }
 
@@ -552,7 +572,7 @@
             statusEl.style.color = color;
             statusEl.style.opacity = '1';
             setTimeout(() => {
-                statusEl.style.opacity = '0';
+                if(!isSpinning) statusEl.style.opacity = '0';
             }, 3000);
         }
 
@@ -625,7 +645,7 @@
 
             isSpinning = true;
             balance -= betAmount;
-            saveBalance(); // Сохраняем списание
+            saveBalance(); // Сохраняем после ставки
             updateUI();
             payline.style.display = 'none';
             statusEl.style.opacity = '0';
@@ -698,7 +718,7 @@
             if(multiplier > 0) {
                 const winAmount = Math.floor(bet * multiplier);
                 balance += winAmount;
-                saveBalance(); // Сохраняем выигрыш
+                saveBalance(); // Сохраняем после выигрыша
                 playWinSound(winAmount);
                 setTimeout(() => showStatus(`+${winAmount}`, '#fff'), 1000);
             } else {
@@ -708,6 +728,7 @@
             updateUI();
         }
 
+        // Запуск
         init();
     </script>
 </body>
