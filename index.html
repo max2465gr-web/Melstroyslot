@@ -33,7 +33,7 @@
             user-select: none;
         }
 
-        /* === ФОНОВЫЕ ЭЛЕМЕНТЫ (ЗВЕЗДЫ) === */
+        /* ЗВЕЗДЫ */
         .star {
             position: absolute;
             color: #ffd700;
@@ -47,9 +47,9 @@
             50% { opacity: 1; transform: scale(1.2); }
         }
 
-        /* === ВЫВЕСКА MELSTROY SLOT === */
+        /* ВЫВЕСКА */
         .neon-sign {
-            font-size: 42px; /* Чуть меньше, чтобы влезло длинное слово */
+            font-size: 42px;
             color: #fff;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -59,14 +59,14 @@
             text-shadow:
                 0 0 5px #fff,
                 0 0 10px #fff,
-                0 0 20px var(--neon-pink), /* Розовое свечение для стиля */
+                0 0 20px var(--neon-pink),
                 0 0 40px var(--neon-pink),
                 0 0 80px var(--neon-pink);
             z-index: 2;
             position: relative;
         }
 
-        /* === КОНТЕЙНЕР АППАРАТА === */
+        /* МАШИНА */
         .machine-wrapper {
             position: relative;
             display: flex;
@@ -77,7 +77,6 @@
             z-index: 2;
         }
 
-        /* КОРПУС СЛОТА */
         .slot-machine {
             width: 320px;
             height: 260px;
@@ -94,7 +93,6 @@
             align-items: center;
         }
 
-        /* ЭКРАН С БАРАБАНАМИ */
         .screen-border {
             width: 100%;
             height: 180px;
@@ -117,7 +115,6 @@
             position: relative;
         }
 
-        /* Блики на стекле */
         .glass-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -126,7 +123,6 @@
             pointer-events: none;
         }
 
-        /* ЛИНИЯ ПОБЕДЫ */
         .payline {
             position: absolute;
             top: 50%;
@@ -164,7 +160,6 @@
 
         .blur { filter: blur(3px); }
 
-        /* ИНФО ПАНЕЛЬ (БАЛАНС) */
         .info-panel {
             margin-top: 15px;
             background: #000;
@@ -179,7 +174,7 @@
             text-transform: uppercase;
         }
 
-        /* === РЫЧАГ === */
+        /* РЫЧАГ */
         .lever-container {
             position: absolute;
             right: -30px;
@@ -239,7 +234,6 @@
         }
         .lever-knob:active { cursor: grabbing; }
 
-        /* Сообщение статуса */
         #status {
             position: fixed;
             bottom: 20px;
@@ -255,7 +249,6 @@
             text-align: center;
         }
 
-        /* Адаптив */
         @media (max-width: 450px) {
             .machine-wrapper { transform: scale(0.85); }
             .neon-sign { font-size: 32px; }
@@ -265,7 +258,6 @@
 </head>
 <body>
 
-    <!-- Фон: Звезды -->
     <div class="star" style="top: 10%; left: 10%;">★</div>
     <div class="star" style="top: 20%; right: 15%; animation-delay: 1s;">★</div>
     <div class="star" style="top: 80%; left: 20%; animation-delay: 0.5s;">★</div>
@@ -302,11 +294,12 @@
 
     <script>
         // === НАСТРОЙКИ ===
-        const SYMBOLS = ['💎', '7️⃣', '🔔', '🍒', '🍋', '🍉', '⭐', '💰', '🍊'];
+        // Убрал редкие символы, чтобы повысить шансы
+        const SYMBOLS = ['💎', '7️⃣', '🔔', '🍒', '🍋', '💰'];
         const SYMBOL_HEIGHT = 80;
         const PAYOUTS = {
-            '💎': 1000, '7️⃣': 500, '💰': 300, '⭐': 200,
-            '🔔': 100, '🍉': 50, '🍒': 20
+            '💎': 1000, '7️⃣': 500, '💰': 300,
+            '🔔': 150, '🍋': 50, '🍒': 20
         };
 
         const reels = [
@@ -322,12 +315,12 @@
 
         let balance = 1000;
         let isSpinning = false;
+        let spinSoundInterval = null;
 
-        // === ЗВУКОВОЙ ДВИЖОК (Web Audio API) ===
+        // === ЗВУКОВОЙ ДВИЖОК ===
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
 
-        // Простой генератор звука
         function playTone(freq, type, duration, vol = 0.1) {
             if (!audioCtx) return;
             const osc = audioCtx.createOscillator();
@@ -342,34 +335,37 @@
             osc.stop(audioCtx.currentTime + duration);
         }
 
-        function playLeverSound() {
-            // Механический "хруст"
+        // Звук механической трещотки (прокрутка)
+        function startSpinSound() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            playTone(100, 'sawtooth', 0.1, 0.05);
+            if(spinSoundInterval) clearInterval(spinSoundInterval);
+
+            spinSoundInterval = setInterval(() => {
+                // Короткий низкий "тук"
+                playTone(150, 'square', 0.05, 0.05);
+                // Добавим немного шума для механичности (второй тон)
+                setTimeout(() => playTone(100, 'sawtooth', 0.03, 0.03), 10);
+            }, 90); // Частота тиканья
         }
 
-        function playSpinSound() {
-            // Электронное тиканье
-            let count = 0;
-            const interval = setInterval(() => {
-                if(!isSpinning) { clearInterval(interval); return; }
-                if(count % 5 === 0) playTone(400, 'square', 0.05, 0.02);
-                count++;
-            }, 100);
+        function stopSpinSound() {
+            if(spinSoundInterval) clearInterval(spinSoundInterval);
         }
 
         function playWinSound(amount) {
-            // Победный джингл
-            const notes = [523.25, 659.25, 783.99, 1046.50]; // C Major arpeggio
+            const notes = [523.25, 659.25, 783.99, 1046.50];
             notes.forEach((note, i) => {
                 setTimeout(() => playTone(note, 'sine', 0.3, 0.1), i * 150);
             });
-            // Звук монет, если крупный выигрыш
             if (amount >= 100) {
                 for(let k=0; k<5; k++) {
                     setTimeout(() => playTone(1200 + Math.random()*500, 'triangle', 0.1, 0.05), 600 + k*100);
                 }
             }
+        }
+
+        function playLeverSound() {
+            playTone(80, 'sawtooth', 0.15, 0.1);
         }
 
         // === ЛОГИКА ===
@@ -426,8 +422,6 @@
 
         function onStart(e) {
             if(isSpinning) return;
-
-            // Инициализация аудио контекста по первому клику (требование браузеров)
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
             isDragging = true;
@@ -446,11 +440,6 @@
             if (angle < 0) angle = 0;
             if (angle > 130) angle = 130;
 
-            // Звук трещотки, если угол меняется
-            if (Math.floor(angle) % 10 === 0 && angle > 5) {
-                // playLeverSound(); // Можно включить, если хочется частого треска
-            }
-
             leverHandle.style.transform = `rotate(${angle}deg)`;
         }
 
@@ -463,7 +452,7 @@
             const dist = endY - startY;
 
             if (dist > 150) {
-                playLeverSound(); // Громкий звук при отпускании
+                playLeverSound();
                 startSpin();
             }
             resetLever();
@@ -491,11 +480,26 @@
             payline.style.display = 'none';
             statusEl.style.opacity = '0';
 
-            playSpinSound(); // Звук вращения
+            startSpinSound(); // Запуск трещотки
 
-            const finalSymbols = [];
-            for(let i=0; i<3; i++) {
-                finalSymbols.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+            // Генерируем случайный результат
+            let finalSymbols = [];
+
+            // === АЛГОРИТМ ПОВЫШЕНИЯ ШАНСОВ ===
+            // С вероятностью 35% принудительно даем выигрыш (пару или тройку)
+            const luckyChance = Math.random();
+
+            if (luckyChance < 0.35) {
+                // Гарантированная пара
+                const sym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+                finalSymbols = [sym, sym, SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]];
+                // Перемешаем порядок, чтобы пара не всегда была в начале
+                if(Math.random() > 0.5) finalSymbols = [sym, SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)], sym];
+            } else {
+                // Честный рандом (но символов теперь меньше, так что шансы и так выше)
+                for(let i=0; i<3; i++) {
+                    finalSymbols.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+                }
             }
 
             reels.forEach((reel, i) => {
@@ -526,6 +530,7 @@
             });
 
             setTimeout(() => {
+                stopSpinSound(); // Остановить звук
                 checkWin(finalSymbols);
                 isSpinning = false;
             }, 3500);
@@ -542,7 +547,7 @@
                 payline.style.display = 'block';
                 playWinSound(win);
             } else if (s1 === s2 || s2 === s3 || s1 === s3) {
-                 win = 20;
+                 win = 30; // Увеличил минимальный выигрыш
                  showStatus(`ВЫИГРЫШ +${win}`, '#ffd700');
                  playWinSound(win);
             } else {
