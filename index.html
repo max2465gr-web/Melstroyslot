@@ -2,54 +2,71 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Казино</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Casino Royale</title>
     <style>
-        /* Шрифты и переменные */
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Roboto:wght@700&display=swap');
 
         :root {
-            --machine-body: #8D2B0B;
-            --machine-body-dark: #541a05;
-            --gold-trim: #FFD700;
-            --gold-trim-dark: #b59800;
-            --screen-bg: #1a1a1a;
-            --lever-stick: #c0c0c0;
-            --lever-ball: #dc143c; /* Crimson Red */
+            --bg-color-dark: #092c5e;
+            --bg-color-light: #249cd0;
+            --machine-gold: #e6b853;
+            --machine-gold-dark: #b58928;
+            --machine-inner: #0a0a0a;
+            --neon-glow: #0ff;
         }
 
-        /* Базовые стили */
-        body, html {
+        * {
+            box-sizing: border-box;
+            user-select: none; /* Запрет выделения текста */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
             margin: 0;
             padding: 0;
-            width: 100%;
             height: 100vh;
+            width: 100vw;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            background: radial-gradient(circle, #4a2c2a, #1c110a);
+            justify-content: center;
+            background: radial-gradient(circle at center, var(--bg-color-light) 0%, var(--bg-color-dark) 80%);
             font-family: 'Roboto', sans-serif;
             overflow: hidden;
         }
 
-        /* Контейнер для центрирования и масштабирования */
-        .casino-container {
-            position: relative;
-            transform: scale(0.9);
-            transition: transform 0.3s;
+        /* Неоновая вывеска */
+        .casino-sign {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 40px;
+            color: #fff;
+            text-shadow:
+                0 0 5px #fff,
+                0 0 10px #fff,
+                0 0 20px var(--neon-glow),
+                0 0 40px var(--neon-glow),
+                0 0 80px var(--neon-glow);
+            margin-bottom: 20px;
+            z-index: 10;
         }
 
-        /* Главный корпус слот-машины */
+        /* Основной контейнер машины */
+        .slot-machine-container {
+            position: relative;
+            transform-origin: center center;
+            /* Адаптивный зум через JS или Media Queries */
+        }
+
         .slot-machine {
-            width: 340px;
-            background: linear-gradient(145deg, var(--machine-body), var(--machine-body-dark));
-            border-radius: 30px;
-            padding: 20px;
-            border: 5px solid var(--gold-trim-dark);
+            width: 320px;
+            height: 240px;
+            background: linear-gradient(to bottom, var(--machine-gold), var(--machine-gold-dark));
+            border-radius: 20px;
+            padding: 15px;
             box-shadow:
-                0 20px 40px rgba(0,0,0,0.6),
-                inset 0 0 25px rgba(0,0,0,0.5),
-                0 0 10px var(--gold-trim);
+                0 10px 30px rgba(0,0,0,0.5),
+                inset 0 0 10px rgba(255,255,255,0.3);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -57,253 +74,464 @@
             z-index: 2;
         }
 
-        /* Дисплей баланса */
-        #balance-display {
-            font-family: 'Orbitron', sans-serif;
-            color: #00ff00;
-            font-size: 24px;
-            margin-bottom: 20px;
-            background: #000;
-            padding: 5px 20px;
-            border-radius: 5px;
-            border: 2px solid #333;
-            text-shadow: 0 0 5px #00ff00;
-        }
-
-        /* Экран с барабанами */
+        /* Окно с барабанами */
         .reels-window {
+            width: 100%;
+            height: 100%;
             background: #000;
-            border: 8px solid var(--gold-trim);
+            border: 4px solid #5a3e08;
             border-radius: 10px;
-            padding: 15px;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
-            margin-bottom: 25px;
-        }
-
-        .reels {
-            display: flex;
-            width: 270px; /* 90px * 3 */
-            height: 90px;
             overflow: hidden;
-            border-radius: 5px;
+            display: flex;
+            justify-content: space-around;
+            padding: 5px;
+            position: relative;
         }
 
-        .reel {
-            width: 90px;
-            height: 9000px;
-            /* === НОВЫЙ СПРАЙТ С ЭМОДЗИ === */
-            background-image: url('https://i.imgur.com/SYsJm0x.png');
-            background-size: 90px 540px; /* 90px * 6 символов */
-            background-repeat: repeat-y;
-        }
-
-        .reel.spinning {
-            filter: blur(3px); /* Увеличим размытие для скорости */
-        }
-
-        /* Сообщение о выигрыше/проигрыше */
-        #message {
-            height: 30px;
-            font-size: 22px;
-            font-weight: bold;
-            text-align: center;
-            color: #fff;
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
-            transition: transform 0.2s;
-        }
-        #message.win {
-            transform: scale(1.2);
-            color: var(--gold-trim);
-        }
-
-        /* Рычаг - без изменений */
-        .lever-assembly {
+        /* Блики на стекле */
+        .glass-reflection {
             position: absolute;
-            right: -75px;
-            top: 50px;
-            width: 80px;
-            height: 250px;
-            z-index: 1;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.1) 100%);
+            pointer-events: none;
+            z-index: 5;
+            border-radius: 8px;
         }
-        .lever-base {
-            width: 50px;
-            height: 50px;
-            background: radial-gradient(circle, #e0e0e0, #a0a0a0);
-            border-radius: 50%;
+
+        /* Линия выигрыша */
+        .win-line {
             position: absolute;
-            bottom: 0;
-            left: 15px;
-            box-shadow: 0 5px 10px rgba(0,0,0,0.5);
-        }
-        .lever {
-            width: 80px;
-            height: 220px;
-            position: absolute;
-            bottom: 25px;
+            top: 50%;
             left: 0;
-            cursor: pointer;
-            transform-origin: bottom center;
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            width: 100%;
+            height: 2px;
+            background: rgba(255, 0, 0, 0.3);
+            z-index: 4;
+            transform: translateY(-50%);
+            box-shadow: 0 0 5px red;
         }
-        .lever-stick {
-            width: 14px;
-            height: 180px;
-            background: linear-gradient(90deg, #e0e0e0, #707070);
-            border-radius: 7px;
-            position: absolute;
-            bottom: 0;
-            left: calc(50% - 7px);
+
+        /* Отдельный барабан */
+        .reel-col {
+            width: 30%;
+            height: 100%;
+            background: #fff;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
-        .lever-ball {
-            width: 70px;
-            height: 70px;
-            background: radial-gradient(circle at 20px 20px, #ff506c, var(--lever-ball));
-            border-radius: 50%;
+
+        /* Полоса символов внутри барабана */
+        .reel-strip {
             position: absolute;
             top: 0;
-            left: calc(50% - 35px);
-            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.4), 0 5px 10px rgba(0,0,0,0.4);
-        }
-        .lever.pulled {
-            transform: rotate(60deg);
-        }
-
-        /* Адаптация - без изменений */
-        @media (max-width: 450px) {
-            .casino-container { transform: scale(0.8) translateY(-50px); }
-        }
-        @media (max-height: 500px) {
-             .casino-container { transform: scale(0.7); }
+            left: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Начальное смещение, чтобы показать первый символ */
+            transform: translateY(0px);
+            will-change: transform; /* Оптимизация для мобилок */
         }
 
+        .symbol {
+            height: 80px; /* Фиксированная высота символа */
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 50px;
+            line-height: 80px;
+        }
+
+        /* Эффект размытия при вращении */
+        .blur {
+            filter: blur(4px);
+        }
+
+        /* Механизм рычага (база) */
+        .lever-base {
+            position: absolute;
+            right: -40px;
+            top: 80px;
+            width: 40px;
+            height: 80px;
+            background: #555;
+            border-radius: 0 10px 10px 0;
+            z-index: 1;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5);
+        }
+
+        /* Подвижная часть рычага */
+        .lever-arm {
+            position: absolute;
+            right: -30px;
+            top: 100px; /* Точка крепления */
+            width: 20px;
+            height: 100px; /* Длина палки */
+            transform-origin: top center;
+            transform: rotate(0deg);
+            z-index: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .lever-stick {
+            width: 12px;
+            height: 100%;
+            background: linear-gradient(90deg, #ccc, #666);
+            border-radius: 6px;
+        }
+
+        .lever-ball {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle at 30% 30%, #ff4d4d, #990000);
+            border-radius: 50%;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.4);
+            cursor: grab;
+            touch-action: none; /* Важно для мобилок: отключает скролл страницы при касании */
+        }
+
+        .lever-ball:active {
+            cursor: grabbing;
+        }
+
+        /* Интерфейс баланса и сообщений */
+        .ui-panel {
+            margin-top: 30px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        #balance {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            color: #ffd700;
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 2px solid #ffd700;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        #message {
+            font-size: 18px;
+            color: #fff;
+            height: 24px;
+            font-weight: bold;
+            text-shadow: 0 1px 2px #000;
+        }
+
+        /* Декоративные монеты */
+        .coins-bg {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 150px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 50 50'%3E%3Ccircle cx='25' cy='25' r='20' fill='%23ffd700' opacity='0.5'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-size='20' fill='%23b58928'%3E$%3C/text%3E%3C/svg%3E");
+            z-index: 0;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Адаптация под разные экраны */
+        @media (max-width: 400px) {
+            .slot-machine-container { transform: scale(0.85); }
+        }
     </style>
 </head>
 <body>
 
-    <div class="casino-container">
+    <div class="casino-sign">CASINO</div>
+
+    <div class="slot-machine-container">
+        <!-- Корпус -->
         <div class="slot-machine">
-            <div id="balance-display">Баланс: 1000 💰</div>
             <div class="reels-window">
-                <div class="reels">
-                    <div class="reel" id="reel1"></div>
-                    <div class="reel" id="reel2"></div>
-                    <div class="reel" id="reel3"></div>
-                </div>
+                <div class="win-line"></div>
+                <div class="glass-reflection"></div>
+
+                <div class="reel-col"><div class="reel-strip" id="reel1"></div></div>
+                <div class="reel-col"><div class="reel-strip" id="reel2"></div></div>
+                <div class="reel-col"><div class="reel-strip" id="reel3"></div></div>
             </div>
-            <div id="message"></div>
         </div>
 
-        <div class="lever-assembly">
-            <div class="lever-base"></div>
-            <div class="lever" id="lever">
-                <div class="lever-stick"></div>
-                <div class="lever-ball"></div>
-            </div>
+        <!-- Рычаг -->
+        <div class="lever-base"></div>
+        <div class="lever-arm" id="leverArm">
+            <div class="lever-stick"></div>
+            <div class="lever-ball" id="leverBall"></div>
         </div>
     </div>
 
+    <div class="ui-panel">
+        <div id="balance">BALANCE: 1000</div>
+        <div id="message">PULL THE LEVER TO SPIN!</div>
+    </div>
+
+    <div class="coins-bg"></div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            /* === НОВЫЙ НАБОР СИМВОЛОВ И ВЫПЛАТ === */
-            const symbols = ['💎', '💰', '7️⃣', '⭐', '🔔', '🍒'];
-            const payouts = {
-                '💎': { '3': 5000 },
-                '💰': { '3': 2000 },
-                '7️⃣': { '3': 1500 },
-                '⭐': { '3': 1000 },
-                '🔔': { '3': 500 },
-                '🍒': { '3': 250, '2': 50 } // Вишенки платят и за 2 в ряду
-            };
-            const symbolHeight = 90;
+        // === КОНФИГУРАЦИЯ ===
+        const SYMBOLS = ['💎', '7️⃣', '🔔', '🍒', '🍋', '🍉', '🍇', '⭐', '💰', '🍊'];
+        // Веса для генерации (чтобы редкие выпадали реже, если захотите)
+        const SYMBOL_HEIGHT = 80; // px
+        const REEL_VISIBLE_ROWS = 3; // но у нас по факту 1 центральная линия важна
 
-            const reels = [
-                document.getElementById('reel1'),
-                document.getElementById('reel2'),
-                document.getElementById('reel3')
-            ];
+        // Выплаты (за 3 совпадения)
+        const PAYOUTS = {
+            '💎': 1000, '💰': 500, '7️⃣': 300, '⭐': 200,
+            '🔔': 100, '🍉': 50, '🍇': 40, '🍊': 30, '🍋': 20, '🍒': 10
+        };
 
-            const lever = document.getElementById('lever');
-            const message = document.getElementById('message');
-            const balanceDisplay = document.getElementById('balance-display');
+        // Состояние
+        let balance = 1000;
+        let isSpinning = false;
+        const SPIN_COST = 50;
 
-            let balance = 1000;
-            let isSpinning = false;
-            const spinCost = 50;
+        // Элементы
+        const reels = [
+            document.getElementById('reel1'),
+            document.getElementById('reel2'),
+            document.getElementById('reel3')
+        ];
+        const balanceEl = document.getElementById('balance');
+        const messageEl = document.getElementById('message');
 
+        // Рычаг
+        const leverArm = document.getElementById('leverArm');
+        const leverBall = document.getElementById('leverBall');
+
+        // Инициализация (заполняем барабаны начальными символами)
+        function initReels() {
+            reels.forEach(reel => {
+                let html = '';
+                // Генерируем длинную ленту, чтобы было что крутить
+                // Начнем с рандомных символов
+                for(let i=0; i<30; i++) {
+                    const sym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+                    html += `<div class="symbol">${sym}</div>`;
+                }
+                reel.innerHTML = html;
+                // Сдвигаем, чтобы центр был визуально корректен (примерно в середине ленты)
+                // Для простоты, начнем с Y=0, а крутить будем в минус
+                reel.style.transform = `translateY(-${10 * SYMBOL_HEIGHT + (SYMBOL_HEIGHT/2 - 40)}px)`;
+            });
+
+            // Получаем баланс из URL
             const urlParams = new URLSearchParams(window.location.search);
-            const initialBalance = parseInt(urlParams.get('balance'));
-            if (!isNaN(initialBalance)) {
-                balance = initialBalance;
+            const startBal = parseInt(urlParams.get('balance'));
+            if(!isNaN(startBal)) balance = startBal;
+            updateUI();
+        }
+
+        function updateUI() {
+            balanceEl.textContent = `BALANCE: ${balance}`;
+        }
+
+        // === ЛОГИКА РЫЧАГА (DRAG) ===
+        let isDragging = false;
+        let startY = 0;
+        let currentRotation = 0;
+        const MAX_ROTATION = 150; // градусов вниз
+
+        function startDrag(e) {
+            if(isSpinning) return;
+            isDragging = true;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            startY = clientY;
+            leverBall.style.cursor = 'grabbing';
+        }
+
+        function onDrag(e) {
+            if(!isDragging) return;
+            e.preventDefault(); // чтобы не скроллить экран
+
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            let delta = clientY - startY;
+
+            // Конвертируем пиксели в градусы (простая эвристика)
+            let rotation = delta * 0.8;
+
+            // Ограничения
+            if(rotation < 0) rotation = 0;
+            if(rotation > MAX_ROTATION) rotation = MAX_ROTATION;
+
+            currentRotation = rotation;
+            leverArm.style.transform = `rotate(${rotation}deg)`;
+        }
+
+        function endDrag() {
+            if(!isDragging) return;
+            isDragging = false;
+            leverBall.style.cursor = 'grab';
+
+            // Если потянули достаточно сильно (>80%) - запускаем спин
+            if(currentRotation > MAX_ROTATION * 0.8) {
+                // Анимация "отскока" рычага вверх
+                animateLeverReturn(true);
+            } else {
+                // Просто возвращаем на место без спина
+                animateLeverReturn(false);
             }
-            updateBalanceDisplay();
+        }
 
-            lever.addEventListener('click', spin);
+        function animateLeverReturn(shouldSpin) {
+            leverArm.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            leverArm.style.transform = 'rotate(0deg)';
 
-            function updateBalanceDisplay() {
-                balanceDisplay.textContent = `Баланс: ${balance} 💰`;
+            // Ждем окончания анимации рычага
+            setTimeout(() => {
+                leverArm.style.transition = ''; // убираем transition для следующего драга
+                if(shouldSpin) startSpin();
+            }, 400);
+        }
+
+        // События для мыши и тача
+        leverBall.addEventListener('mousedown', startDrag);
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('mouseup', endDrag);
+
+        leverBall.addEventListener('touchstart', startDrag, {passive: false});
+        document.addEventListener('touchmove', onDrag, {passive: false});
+        document.addEventListener('touchend', endDrag);
+
+
+        // === ЛОГИКА ИГРЫ ===
+        function startSpin() {
+            if (balance < SPIN_COST) {
+                messageEl.textContent = "NOT ENOUGH MONEY!";
+                messageEl.style.color = "red";
+                return;
             }
 
-            function spin() {
-                if (isSpinning) return;
-                if (balance < spinCost) {
-                    message.textContent = "Недостаточно средств!";
-                    return;
+            balance -= SPIN_COST;
+            updateUI();
+            messageEl.textContent = "GOOD LUCK!";
+            messageEl.style.color = "#fff";
+            isSpinning = true;
+
+            // Генерируем результат
+            const finalSymbols = [];
+            for(let i=0; i<3; i++) {
+                finalSymbols.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+            }
+
+            // Запускаем вращение каждого барабана
+            reels.forEach((reel, index) => {
+                // Текущая позиция (из transform)
+                const currentY = parseFloat(reel.style.transform.replace('translateY(', '').replace('px)', '')) || 0;
+
+                // Целевая позиция:
+                // Мы хотим прокрутить "вниз" (или визуально вверх ленту), добавив много новых символов
+                // И в конце подставить наш result
+
+                // 1. Добавляем символы в DOM
+                const extraSymbols = 20 + index * 10; // разная длина для эффекта лесенки
+                let htmlToAdd = '';
+                for(let k=0; k<extraSymbols; k++) {
+                    htmlToAdd += `<div class="symbol blur">${SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]}</div>`;
                 }
+                // В конце добавляем целевой символ (БЕЗ блюра) и еще пару для центровки
+                htmlToAdd += `<div class="symbol" id="res-sym-${index}">${finalSymbols[index]}</div>`;
+                htmlToAdd += `<div class="symbol blur">${SYMBOLS[0]}</div>`; // просто запасной
 
-                isSpinning = true;
-                balance -= spinCost;
-                updateBalanceDisplay();
-                message.textContent = "";
-                message.classList.remove('win');
+                reel.innerHTML = htmlToAdd + reel.innerHTML; // Добавляем СВЕРХУ (визуально это будет начало новой прокрутки)
 
-                lever.classList.add('pulled');
-                setTimeout(() => lever.classList.remove('pulled'), 400);
+                // Поскольку мы добавили элементы сверху, позиция сбилась бы. Но мы используем анимацию transition to.
+                // Хитрость: мы сбрасываем transition, ставим ленту высоко, а потом плавно опускаем к целевому символу.
 
-                let results = [];
+                // Упрощенный подход для CSS анимации:
+                // Перезаписываем полностью ленту
+                reel.innerHTML = htmlToAdd;
+                const totalH = (extraSymbols + 2) * SYMBOL_HEIGHT;
 
-                reels.forEach((reel, i) => {
-                    reel.classList.add('spinning');
-                    const spinDuration = 2.5 + i * 0.5;
-                    reel.style.transition = `background-position-y ${spinDuration}s cubic-bezier(.42,0, .58,1)`;
+                // Ставим ленту так, чтобы нижний край был виден (старая позиция) - имитация
+                reel.style.transition = 'none';
+                reel.style.transform = `translateY(-${totalH - SYMBOL_HEIGHT * 3}px)`; // Старт снизу
 
-                    const randomSymbolIndex = Math.floor(Math.random() * symbols.length);
-                    results.push(randomSymbolIndex);
+                // Форсируем reflow
+                reel.offsetHeight;
 
-                    const finalBgPos = -(reel.offsetHeight - symbolHeight) + (randomSymbolIndex * symbolHeight);
-                    const extraSpins = 10;
-                    const spinDistance = extraSpins * (symbolHeight * symbols.length);
+                // Анимируем к нужному символу
+                // Целевой символ находится на индексе `extraSymbols`.
+                // Нам нужно, чтобы он встал ровно по центру окна.
+                // Окно высотой ~200px (3 символа по 80px = 240px, но у нас рамки).
+                // Центр окна = 110px. Центр символа = 40px.
+                // Нужно смещение так, чтобы (index * 80) оказалось в нужной точке.
+                // Проще: мы хотим показать символ номер `extraSymbols` (это целевой).
+                // Смещение = - (extraSymbols * 80) + отступ_для_центра
 
-                    reel.style.backgroundPositionY = `${finalBgPos + spinDistance}px`;
-                });
+                const targetY = -(extraSymbols * SYMBOL_HEIGHT) + (240/2 - SYMBOL_HEIGHT/2); // 240 - высота окна
 
+                const duration = 2 + index * 0.5;
+                reel.style.transition = `transform ${duration}s cubic-bezier(0.25, 0.1, 0.25, 1)`;
+                reel.style.transform = `translateY(${targetY}px)`;
+
+                // Убираем блюр в конце
                 setTimeout(() => {
-                    reels.forEach(reel => reel.classList.remove('spinning'));
-                    checkWin(results);
-                    isSpinning = false;
-                }, 3500);
+                    const targetEl = document.getElementById(`res-sym-${index}`);
+                    if(targetEl) targetEl.classList.remove('blur');
+                    // Остальные символы можно оставить блюр, или убрать
+                    document.querySelectorAll('.symbol').forEach(el => el.classList.remove('blur'));
+                }, duration * 1000);
+            });
+
+            // Проверка выигрыша после остановки последнего барабана
+            setTimeout(() => {
+                checkWin(finalSymbols);
+                isSpinning = false;
+            }, 3500);
+        }
+
+        function checkWin(results) {
+            const [s1, s2, s3] = results;
+            let win = 0;
+
+            if(s1 === s2 && s2 === s3) {
+                // Джекпот 3 в ряд
+                win = PAYOUTS[s1] || 10;
+                messageEl.textContent = `JACKPOT! +${win}`;
+                messageEl.style.color = "#0f0";
+                createCoinsExplosion();
+            } else if (s1 === s2 || s2 === s3 || s1 === s3) {
+                // 2 совпадения (упрощенно: любые 2 дают маленький приз)
+                // Найдем какой символ совпал
+                let matchSym = (s1===s2) ? s1 : (s2===s3 ? s2 : s1);
+                // Дадим 20% от полной награды
+                win = Math.floor((PAYOUTS[matchSym] || 10) * 0.2);
+                messageEl.textContent = `NICE! +${win}`;
+                messageEl.style.color = "#ffd700";
+            } else {
+                messageEl.textContent = "TRY AGAIN";
             }
 
-            function checkWin(results) {
-                const [r1, r2, r3] = results.map(index => symbols[index]);
-
-                let winAmount = 0;
-
-                if (r1 === r2 && r2 === r3) { // Три в ряд
-                    winAmount = payouts[r1]['3'] || 0;
-                } else if (r1 === r2 && payouts[r1] && payouts[r1]['2']) { // Два в ряд (только для вишен)
-                    winAmount = payouts[r1]['2'];
-                }
-
-                if (winAmount > 0) {
-                    balance += winAmount;
-                    message.textContent = `Выигрыш: ${winAmount}!`;
-                    message.classList.add('win');
-                } else {
-                    message.textContent = "Попробуйте еще!";
-                }
-                updateBalanceDisplay();
+            if(win > 0) {
+                balance += win;
+                updateUI();
+                // Тут можно отправить данные боту
             }
-        });
+        }
+
+        // Простой эффект салюта (логи в консоль или можно доработать)
+        function createCoinsExplosion() {
+            // Визуальный эффект
+            const winLine = document.querySelector('.win-line');
+            winLine.style.display = 'block';
+            setTimeout(() => winLine.style.display = 'none', 1000);
+        }
+
+        initReels();
+
     </script>
 </body>
 </html>
