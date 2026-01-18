@@ -311,17 +311,49 @@
         let balance = 1000;
         let isSpinning = false;
 
-        // Переменные для аудио
+        // === ПРОФЕССИОНАЛЬНЫЙ ЗВУКОВОЙ ДВИЖОК ===
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
         let motorOscillator = null;
         let motorGain = null;
         let tickInterval = null;
+        let noiseBuffer = null;
 
-        // === ПРОДВИНУТЫЙ ЗВУКОВОЙ ДВИЖОК ===
+        // Создаем буфер белого шума (1 секунда) для реалистичных эффектов
+        function createNoiseBuffer() {
+            if(noiseBuffer) return;
+            const bufferSize = audioCtx.sampleRate; // 1 секунда
+            noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+        }
 
-        // 1. Простой тон (для эффектов)
-        function playTone(freq, type, duration, vol = 0.1, decay = 0.01) {
+        // Вспомогательная функция: Играть шум с фильтром и огибающей
+        function playFilteredNoise(filterFreq, duration, vol) {
+            if (!audioCtx) return;
+            createNoiseBuffer();
+
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = noiseBuffer;
+            const noiseFilter = audioCtx.createBiquadFilter();
+            noiseFilter.type = 'bandpass';
+            noiseFilter.frequency.value = filterFreq;
+            noiseFilter.Q.value = 5; // Узкая полоса для "металлического" звука
+
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+            noise.start();
+        }
+
+        // Простой тон для тональных звуков
+        function playTone(freq, type, duration, vol = 0.1) {
             if (!audioCtx) return;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
@@ -335,57 +367,58 @@
             osc.stop(audioCtx.currentTime + duration);
         }
 
-        // 2. Звук "Трещотки" при натягивании рычага
+        // 1. РЕАЛИСТИЧНАЯ ТРЕЩОТКА (КЛИК МЕТАЛЛА)
         function playRatchetSound() {
-            // Резкий, короткий металлический щелчок
-            playTone(800, 'sawtooth', 0.05, 0.05);
-            playTone(150, 'square', 0.05, 0.08); // Добавляем "тела" звуку
+            // Импульс шума на высоких частотах = клик металла
+            // Немного рандомизируем частоту для "живости"
+            const freq = 2000 + Math.random() * 500;
+            playFilteredNoise(freq, 0.05, 0.3);
         }
 
-        // 3. Звук удара рычага (отпускание)
+        // 2. ТЯЖЕЛЫЙ УДАР ПРИ ОТПУСКАНИИ (CLUNK)
         function playLeverClunk() {
-            playTone(100, 'square', 0.2, 0.2); // Глухой удар
-            setTimeout(() => playTone(50, 'sine', 0.3, 0.3), 50); // Эхо пружины
+            // A. Низкий "Бум" (Тяжесть)
+            playTone(60, 'triangle', 0.2, 0.4);
+
+            // B. Металлический удар (Шум)
+            playFilteredNoise(800, 0.1, 0.3);
+
+            // C. Лязг (Высокий звон)
+            setTimeout(() => playTone(1200, 'sine', 0.1, 0.05), 10);
         }
 
-        // 4. Реалистичный звук мотора и вращения
+        // 3. ЗВУК ВРАЩЕНИЯ (МОТОР + ШЕЛЕСТ)
         function startMotorSound() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
-            // A. Гул мотора (Drone)
+            // Гул мотора
             motorOscillator = audioCtx.createOscillator();
             motorGain = audioCtx.createGain();
-
             motorOscillator.type = 'sawtooth';
-            motorOscillator.frequency.value = 60; // Низкий гул (60Hz)
+            motorOscillator.frequency.value = 50;
 
-            // Фильтр, чтобы гул был мягким, а не резким
             const filter = audioCtx.createBiquadFilter();
             filter.type = 'lowpass';
-            filter.frequency.value = 250;
+            filter.frequency.value = 200;
 
             motorOscillator.connect(filter);
             filter.connect(motorGain);
             motorGain.connect(audioCtx.destination);
 
-            // Плавный старт мотора
             motorGain.gain.setValueAtTime(0, audioCtx.currentTime);
-            motorGain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.5);
-
+            motorGain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.5);
             motorOscillator.start();
 
-            // B. Механическое цоканье (Reel noise)
+            // Механический шелест барабанов
             if(tickInterval) clearInterval(tickInterval);
             tickInterval = setInterval(() => {
-                // Создаем шум трения/вращения
-                const randFreq = 200 + Math.random() * 100;
-                playTone(randFreq, 'square', 0.05, 0.03);
-            }, 80); // Быстрое цоканье
+                // Короткие всплески белого шума для имитации трения
+                playFilteredNoise(1500 + Math.random()*500, 0.03, 0.05);
+            }, 90);
         }
 
         function stopMotorSound() {
             if(motorOscillator) {
-                // Плавное затухание мотора
                 const currTime = audioCtx.currentTime;
                 motorGain.gain.setValueAtTime(motorGain.gain.value, currTime);
                 motorGain.gain.linearRampToValueAtTime(0, currTime + 0.5);
@@ -394,8 +427,8 @@
             }
             if(tickInterval) clearInterval(tickInterval);
 
-            // Финальный звук остановки (тормоз барабанов)
-            playTone(100, 'sawtooth', 0.3, 0.1);
+            // Звук тормозов (пшшш)
+            playFilteredNoise(500, 0.3, 0.2);
         }
 
         function playWinSound(amount) {
@@ -404,7 +437,6 @@
                 setTimeout(() => playTone(note, 'sine', 0.4, 0.1), i * 150);
             });
             if (amount >= 100) {
-                // Звук монет
                 for(let k=0; k<8; k++) {
                     setTimeout(() => playTone(1500 + Math.random()*1000, 'triangle', 0.1, 0.05), 600 + k*80);
                 }
@@ -413,6 +445,7 @@
 
         // === ИНИЦИАЛИЗАЦИЯ ===
         function init() {
+            createNoiseBuffer(); // Подготовим звук
             reels.forEach(reel => {
                 reel.innerHTML = generateStripHTML(20);
                 setReelPosition(reel, 10);
@@ -454,14 +487,14 @@
         // === ЛОГИКА РЫЧАГА ===
         let isDragging = false;
         let startY = 0;
-        let lastSoundAngle = 0; // Для отслеживания трещотки
+        let lastSoundAngle = 0;
 
         function resetLever() {
-            leverHandle.style.transition = 'transform 0.4s cubic-bezier(0.5, 1.5, 0.5, 1)'; // Эффект пружины
+            leverHandle.style.transition = 'transform 0.3s cubic-bezier(0.5, 1.5, 0.5, 1)';
             leverHandle.style.transform = 'rotate(0deg)';
             setTimeout(() => {
                 leverHandle.style.transition = '';
-            }, 400);
+            }, 300);
         }
 
         function onStart(e) {
@@ -485,7 +518,7 @@
             if (angle < 0) angle = 0;
             if (angle > 130) angle = 130;
 
-            // Логика трещотки: звук каждые 15 градусов
+            // Звук трещотки каждые 15 градусов
             if (Math.abs(angle - lastSoundAngle) > 15) {
                 playRatchetSound();
                 lastSoundAngle = angle;
@@ -503,13 +536,13 @@
             const dist = endY - startY;
 
             if (dist > 150) {
-                // 1. Сначала звук удара рычага
+                // Сначала удар рычага
                 playLeverClunk();
 
-                // 2. Небольшая задержка перед стартом мотора (реализм механики)
+                // Чуть позже старт вращения
                 setTimeout(() => {
                     startSpin();
-                }, 200);
+                }, 250);
             }
             resetLever();
         }
@@ -523,7 +556,7 @@
         document.addEventListener('touchend', onEnd);
 
 
-        // === ЛОГИКА СПИНА ===
+        // === СПИН ===
         function startSpin() {
             if(balance < 50) {
                 showStatus("НЕДОСТАТОЧНО СРЕДСТВ!", "red");
@@ -536,7 +569,6 @@
             payline.style.display = 'none';
             statusEl.style.opacity = '0';
 
-            // ЗАПУСК РЕАЛИСТИЧНОГО ЗВУКА
             startMotorSound();
 
             let finalSymbols = [];
@@ -580,7 +612,7 @@
             });
 
             setTimeout(() => {
-                stopMotorSound(); // Глушим мотор
+                stopMotorSound();
                 checkWin(finalSymbols);
                 isSpinning = false;
             }, 3500);
