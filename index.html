@@ -3,300 +3,316 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casino Royale</title>
+    <title>Casino Deluxe</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Roboto:wght@700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap');
 
         :root {
-            --bg-color-dark: #092c5e;
-            --bg-color-light: #249cd0;
-            --machine-gold: #e6b853;
-            --machine-gold-dark: #b58928;
-            --machine-inner: #0a0a0a;
-            --neon-glow: #0ff;
-        }
-
-        * {
-            box-sizing: border-box;
-            user-select: none; /* Запрет выделения текста */
-            -webkit-tap-highlight-color: transparent;
+            --bg-dark: #051e3e;
+            --bg-light: #1e5799;
+            --neon-blue: #00f2ff;
+            --gold-light: #fceabb;
+            --gold-dark: #f8b500;
+            --gold-shadow: #b06602;
+            --red-ball: #d92e2e;
         }
 
         body {
             margin: 0;
             padding: 0;
-            height: 100vh;
             width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, var(--bg-light) 0%, var(--bg-dark) 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: radial-gradient(circle at center, var(--bg-color-light) 0%, var(--bg-color-dark) 80%);
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Montserrat', sans-serif;
             overflow: hidden;
+            user-select: none;
         }
 
-        /* Неоновая вывеска */
-        .casino-sign {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 40px;
+        /* === ФОНОВЫЕ ЭЛЕМЕНТЫ (ЗВЕЗДЫ) === */
+        .star {
+            position: absolute;
+            color: #ffd700;
+            font-size: 20px;
+            animation: twinkle 3s infinite ease-in-out;
+            opacity: 0.8;
+            z-index: 0;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.4; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* === ВЫВЕСКА === */
+        .neon-sign {
+            font-size: 50px;
             color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 30px;
             text-shadow:
                 0 0 5px #fff,
                 0 0 10px #fff,
-                0 0 20px var(--neon-glow),
-                0 0 40px var(--neon-glow),
-                0 0 80px var(--neon-glow);
-            margin-bottom: 20px;
-            z-index: 10;
-        }
-
-        /* Основной контейнер машины */
-        .slot-machine-container {
+                0 0 20px var(--neon-blue),
+                0 0 40px var(--neon-blue),
+                0 0 80px var(--neon-blue);
+            z-index: 2;
             position: relative;
-            transform-origin: center center;
-            /* Адаптивный зум через JS или Media Queries */
         }
 
-        .slot-machine {
-            width: 320px;
-            height: 240px;
-            background: linear-gradient(to bottom, var(--machine-gold), var(--machine-gold-dark));
-            border-radius: 20px;
-            padding: 15px;
-            box-shadow:
-                0 10px 30px rgba(0,0,0,0.5),
-                inset 0 0 10px rgba(255,255,255,0.3);
+        /* === КОНТЕЙНЕР АППАРАТА === */
+        .machine-wrapper {
+            position: relative;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            position: relative;
+            justify-content: center;
+            transform: scale(1);
+            transition: transform 0.3s;
             z-index: 2;
         }
 
-        /* Окно с барабанами */
-        .reels-window {
+        /* КОРПУС СЛОТА */
+        .slot-machine {
+            width: 320px;
+            height: 260px;
+            background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-light) 50%, var(--gold-dark) 100%);
+            border-radius: 30px;
+            padding: 20px;
+            box-shadow:
+                inset 0 0 20px rgba(255, 255, 255, 0.5), /* Блик внутри */
+                0 20px 50px rgba(0,0,0,0.6), /* Тень снаружи */
+                0 0 0 5px var(--gold-shadow); /* Контур */
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ЭКРАН С БАРАБАНАМИ */
+        .screen-border {
+            width: 100%;
+            height: 180px;
+            background: #2a1f08;
+            border-radius: 15px;
+            padding: 10px;
+            box-shadow: inset 0 0 15px #000;
+            display: flex;
+            justify-content: center;
+        }
+
+        .reels-container {
             width: 100%;
             height: 100%;
-            background: #000;
-            border: 4px solid #5a3e08;
+            background: #fff;
             border-radius: 10px;
-            overflow: hidden;
             display: flex;
-            justify-content: space-around;
-            padding: 5px;
+            overflow: hidden;
+            border: 2px solid #000;
             position: relative;
         }
 
         /* Блики на стекле */
-        .glass-reflection {
+        .glass-overlay {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.1) 100%);
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%);
+            z-index: 10;
             pointer-events: none;
-            z-index: 5;
-            border-radius: 8px;
         }
 
-        /* Линия выигрыша */
-        .win-line {
+        /* ЛИНИЯ ПОБЕДЫ */
+        .payline {
             position: absolute;
             top: 50%;
             left: 0;
             width: 100%;
-            height: 2px;
-            background: rgba(255, 0, 0, 0.3);
-            z-index: 4;
+            height: 4px;
+            background: rgba(255, 0, 0, 0.5);
             transform: translateY(-50%);
-            box-shadow: 0 0 5px red;
+            z-index: 5;
+            box-shadow: 0 0 10px red;
+            display: none; /* Скрыта по умолчанию */
         }
 
-        /* Отдельный барабан */
-        .reel-col {
-            width: 30%;
-            height: 100%;
-            background: #fff;
-            border-radius: 4px;
+        .reel {
+            flex: 1;
+            border-right: 2px solid #ccc;
             position: relative;
-            overflow: hidden;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
+        .reel:last-child { border-right: none; }
 
-        /* Полоса символов внутри барабана */
         .reel-strip {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            /* Начальное смещение, чтобы показать первый символ */
-            transform: translateY(0px);
-            will-change: transform; /* Оптимизация для мобилок */
+            /* transform управляется через JS */
         }
 
         .symbol {
-            height: 80px; /* Фиксированная высота символа */
-            width: 100%;
+            height: 80px; /* Высота одной ячейки */
             display: flex;
-            justify-content: center;
             align-items: center;
-            font-size: 50px;
-            line-height: 80px;
-        }
-
-        /* Эффект размытия при вращении */
-        .blur {
-            filter: blur(4px);
-        }
-
-        /* Механизм рычага (база) */
-        .lever-base {
-            position: absolute;
-            right: -40px;
-            top: 80px;
-            width: 40px;
-            height: 80px;
-            background: #555;
-            border-radius: 0 10px 10px 0;
-            z-index: 1;
-            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5);
-        }
-
-        /* Подвижная часть рычага */
-        .lever-arm {
-            position: absolute;
-            right: -30px;
-            top: 100px; /* Точка крепления */
-            width: 20px;
-            height: 100px; /* Длина палки */
-            transform-origin: top center;
-            transform: rotate(0deg);
-            z-index: 0;
-            display: flex;
             justify-content: center;
+            font-size: 50px;
         }
 
-        .lever-stick {
-            width: 12px;
-            height: 100%;
-            background: linear-gradient(90deg, #ccc, #666);
-            border-radius: 6px;
-        }
+        .blur { filter: blur(3px); }
 
-        .lever-ball {
-            position: absolute;
-            bottom: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 50px;
-            height: 50px;
-            background: radial-gradient(circle at 30% 30%, #ff4d4d, #990000);
-            border-radius: 50%;
-            box-shadow: 0 5px 10px rgba(0,0,0,0.4);
-            cursor: grab;
-            touch-action: none; /* Важно для мобилок: отключает скролл страницы при касании */
-        }
-
-        .lever-ball:active {
-            cursor: grabbing;
-        }
-
-        /* Интерфейс баланса и сообщений */
-        .ui-panel {
-            margin-top: 30px;
-            text-align: center;
-            z-index: 10;
-        }
-
-        #balance {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 24px;
-            color: #ffd700;
-            background: rgba(0,0,0,0.7);
-            padding: 10px 20px;
+        /* ИНФО ПАНЕЛЬ (БАЛАНС) */
+        .info-panel {
+            margin-top: 15px;
+            background: #000;
+            border: 2px solid var(--gold-light);
             border-radius: 20px;
-            border: 2px solid #ffd700;
-            display: inline-block;
-            margin-bottom: 10px;
-        }
-
-        #message {
+            padding: 5px 20px;
+            color: var(--gold-light);
             font-size: 18px;
-            color: #fff;
-            height: 24px;
-            font-weight: bold;
-            text-shadow: 0 1px 2px #000;
+            text-align: center;
+            width: 80%;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
         }
 
-        /* Декоративные монеты */
-        .coins-bg {
+        /* === РЫЧАГ (LEVER) === */
+        .lever-container {
+            position: absolute;
+            right: -50px; /* Сдвиг вправо от корпуса */
+            top: 50px;    /* Высота крепления */
+            width: 60px;
+            height: 200px;
+            z-index: 1;
+        }
+
+        /* База крепления к корпусу */
+        .lever-mount {
+            position: absolute;
+            left: -10px;
+            top: 80px;
+            width: 30px;
+            height: 60px;
+            background: linear-gradient(to right, #888, #ccc);
+            border-radius: 5px;
+            z-index: 2;
+            box-shadow: -5px 0 10px rgba(0,0,0,0.5);
+        }
+
+        /* Подвижная рукоятка */
+        .lever-handle {
+            position: absolute;
+            left: 10px;
+            top: 110px; /* Точка вращения (pivot point) */
+            width: 20px;
+            height: 120px; /* Длина палки вверх */
+            transform-origin: bottom center; /* Вращаем относительно низа */
+            transform: rotate(0deg); /* 0deg - стоит вертикально вверх? Нет, поправим логику */
+            /* Мы сделаем так: палка смотрит вверх. Вращаем ВПЕРЕД (на себя/вниз) */
+        }
+
+        /* Стержень */
+        .lever-stick {
+            width: 15px;
+            height: 100%;
+            background: linear-gradient(90deg, #e6b853, #fff, #b58928);
+            border-radius: 10px;
             position: absolute;
             bottom: 0;
-            width: 100%;
-            height: 150px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 50 50'%3E%3Ccircle cx='25' cy='25' r='20' fill='%23ffd700' opacity='0.5'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-size='20' fill='%23b58928'%3E$%3C/text%3E%3C/svg%3E");
-            z-index: 0;
-            opacity: 0.3;
-            pointer-events: none;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
         }
 
-        /* Адаптация под разные экраны */
-        @media (max-width: 400px) {
-            .slot-machine-container { transform: scale(0.85); }
+        /* Шар */
+        .lever-knob {
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle at 30% 30%, #ff5e5e, var(--red-ball));
+            border-radius: 50%;
+            position: absolute;
+            top: -30px; /* На верхушке палки */
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.3), 5px 10px 15px rgba(0,0,0,0.4);
+            cursor: grab;
+            z-index: 10;
         }
+        .lever-knob:active { cursor: grabbing; }
+
+        /* Сообщение статуса */
+        #status {
+            position: fixed;
+            bottom: 20px;
+            font-size: 20px;
+            color: #fff;
+            text-shadow: 0 2px 4px #000;
+            z-index: 10;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        /* Адаптив для маленьких экранов */
+        @media (max-width: 450px) {
+            .machine-wrapper { transform: scale(0.85); }
+            .neon-sign { font-size: 40px; }
+        }
+
     </style>
 </head>
 <body>
 
-    <div class="casino-sign">CASINO</div>
+    <!-- Фон: Звезды -->
+    <div class="star" style="top: 10%; left: 10%;">★</div>
+    <div class="star" style="top: 20%; right: 15%; animation-delay: 1s;">★</div>
+    <div class="star" style="top: 80%; left: 20%; animation-delay: 0.5s;">★</div>
+    <div class="star" style="top: 70%; right: 10%; animation-delay: 1.5s;">★</div>
+    <div class="star" style="top: 15%; left: 50%; font-size: 10px;">★</div>
 
-    <div class="slot-machine-container">
-        <!-- Корпус -->
+    <div class="neon-sign">CASINO</div>
+
+    <div class="machine-wrapper">
+        <!-- Аппарат -->
         <div class="slot-machine">
-            <div class="reels-window">
-                <div class="win-line"></div>
-                <div class="glass-reflection"></div>
+            <div class="screen-border">
+                <div class="reels-container">
+                    <div class="payline"></div>
+                    <div class="glass-overlay"></div>
+                    <div class="reel"><div class="reel-strip" id="reel1"></div></div>
+                    <div class="reel"><div class="reel-strip" id="reel2"></div></div>
+                    <div class="reel"><div class="reel-strip" id="reel3"></div></div>
+                </div>
+            </div>
 
-                <div class="reel-col"><div class="reel-strip" id="reel1"></div></div>
-                <div class="reel-col"><div class="reel-strip" id="reel2"></div></div>
-                <div class="reel-col"><div class="reel-strip" id="reel3"></div></div>
+            <div class="info-panel">
+                <span id="balance">BALANCE: 1000</span>
             </div>
         </div>
 
         <!-- Рычаг -->
-        <div class="lever-base"></div>
-        <div class="lever-arm" id="leverArm">
-            <div class="lever-stick"></div>
-            <div class="lever-ball" id="leverBall"></div>
+        <div class="lever-container">
+            <div class="lever-mount"></div>
+            <!-- Вращающаяся часть -->
+            <div class="lever-handle" id="leverHandle">
+                <div class="lever-stick"></div>
+                <div class="lever-knob" id="leverKnob"></div>
+            </div>
         </div>
     </div>
 
-    <div class="ui-panel">
-        <div id="balance">BALANCE: 1000</div>
-        <div id="message">PULL THE LEVER TO SPIN!</div>
-    </div>
-
-    <div class="coins-bg"></div>
+    <div id="status">WIN! +500</div>
 
     <script>
-        // === КОНФИГУРАЦИЯ ===
-        const SYMBOLS = ['💎', '7️⃣', '🔔', '🍒', '🍋', '🍉', '🍇', '⭐', '💰', '🍊'];
-        // Веса для генерации (чтобы редкие выпадали реже, если захотите)
-        const SYMBOL_HEIGHT = 80; // px
-        const REEL_VISIBLE_ROWS = 3; // но у нас по факту 1 центральная линия важна
-
-        // Выплаты (за 3 совпадения)
+        // === НАСТРОЙКИ ===
+        const SYMBOLS = ['💎', '7️⃣', '🔔', '🍒', '🍋', '🍉', '⭐', '💰', '🍊'];
+        const SYMBOL_HEIGHT = 80; // px, должно совпадать с CSS
         const PAYOUTS = {
-            '💎': 1000, '💰': 500, '7️⃣': 300, '⭐': 200,
-            '🔔': 100, '🍉': 50, '🍇': 40, '🍊': 30, '🍋': 20, '🍒': 10
+            '💎': 1000, '7️⃣': 500, '💰': 300, '⭐': 200,
+            '🔔': 100, '🍉': 50, '🍒': 20
         };
-
-        // Состояние
-        let balance = 1000;
-        let isSpinning = false;
-        const SPIN_COST = 50;
 
         // Элементы
         const reels = [
@@ -305,120 +321,150 @@
             document.getElementById('reel3')
         ];
         const balanceEl = document.getElementById('balance');
-        const messageEl = document.getElementById('message');
+        const statusEl = document.getElementById('status');
+        const payline = document.querySelector('.payline');
 
         // Рычаг
-        const leverArm = document.getElementById('leverArm');
-        const leverBall = document.getElementById('leverBall');
+        const leverHandle = document.getElementById('leverHandle');
+        const leverKnob = document.getElementById('leverKnob');
 
-        // Инициализация (заполняем барабаны начальными символами)
-        function initReels() {
+        let balance = 1000;
+        let isSpinning = false;
+
+        // Инициализация
+        function init() {
+            // Заполняем барабаны начальными символами
             reels.forEach(reel => {
-                let html = '';
-                // Генерируем длинную ленту, чтобы было что крутить
-                // Начнем с рандомных символов
-                for(let i=0; i<30; i++) {
-                    const sym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-                    html += `<div class="symbol">${sym}</div>`;
-                }
-                reel.innerHTML = html;
-                // Сдвигаем, чтобы центр был визуально корректен (примерно в середине ленты)
-                // Для простоты, начнем с Y=0, а крутить будем в минус
-                reel.style.transform = `translateY(-${10 * SYMBOL_HEIGHT + (SYMBOL_HEIGHT/2 - 40)}px)`;
+                reel.innerHTML = generateStripHTML(20);
+                // Ставим в начальную позицию (примерно середина)
+                setReelPosition(reel, 10);
             });
 
-            // Получаем баланс из URL
+            // Баланс из URL
             const urlParams = new URLSearchParams(window.location.search);
             const startBal = parseInt(urlParams.get('balance'));
             if(!isNaN(startBal)) balance = startBal;
-            updateUI();
+            updateBalance();
         }
 
-        function updateUI() {
+        function generateStripHTML(count) {
+            let html = '';
+            for(let i=0; i<count; i++) {
+                const sym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+                html += `<div class="symbol">${sym}</div>`;
+            }
+            return html;
+        }
+
+        function setReelPosition(reel, index) {
+            // Смещаем `strip` так, чтобы символ `index` был по центру
+            // Центр экрана (высота 180px) = 90px.
+            // Центр символа (высота 80px) = 40px.
+            // Позиция верха символа = index * 80.
+            // transform Y = -(index * 80) + (90 - 40)
+            const y = -(index * SYMBOL_HEIGHT) + 50;
+            reel.style.transform = `translateY(${y}px)`;
+        }
+
+        function updateBalance() {
             balanceEl.textContent = `BALANCE: ${balance}`;
         }
 
-        // === ЛОГИКА РЫЧАГА (DRAG) ===
+        function showStatus(text, color='#fff') {
+            statusEl.textContent = text;
+            statusEl.style.color = color;
+            statusEl.style.opacity = '1';
+            setTimeout(() => {
+                statusEl.style.opacity = '0';
+            }, 2000);
+        }
+
+        // === МЕХАНИКА РЫЧАГА (DRAG DOWN) ===
         let isDragging = false;
         let startY = 0;
-        let currentRotation = 0;
-        const MAX_ROTATION = 150; // градусов вниз
 
-        function startDrag(e) {
+        // Настройка анимации возврата
+        function resetLever() {
+            leverHandle.style.transition = 'transform 0.5s cubic-bezier(0.5, 1.5, 0.5, 1)'; // Пружинистый возврат
+            leverHandle.style.transform = 'rotate(0deg)';
+            setTimeout(() => {
+                leverHandle.style.transition = ''; // Убираем transition для следующего перетаскивания
+            }, 500);
+        }
+
+        function onStart(e) {
             if(isSpinning) return;
             isDragging = true;
-            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-            startY = clientY;
-            leverBall.style.cursor = 'grabbing';
+            startY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            leverKnob.style.cursor = 'grabbing';
         }
 
-        function onDrag(e) {
+        function onMove(e) {
             if(!isDragging) return;
-            e.preventDefault(); // чтобы не скроллить экран
+            e.preventDefault(); // Блокируем скролл
 
-            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-            let delta = clientY - startY;
+            const currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            const deltaY = currentY - startY;
 
-            // Конвертируем пиксели в градусы (простая эвристика)
-            let rotation = delta * 0.8;
+            // Конвертируем движение вниз (px) в угол поворота (deg)
+            // Максимальный угол - 130 градусов (рычаг опускается вниз)
+            let angle = deltaY * 0.5;
 
-            // Ограничения
-            if(rotation < 0) rotation = 0;
-            if(rotation > MAX_ROTATION) rotation = MAX_ROTATION;
+            if (angle < 0) angle = 0; // Нельзя толкать вверх
+            if (angle > 130) angle = 130; // Ограничитель
 
-            currentRotation = rotation;
-            leverArm.style.transform = `rotate(${rotation}deg)`;
+            leverHandle.style.transform = `rotate(${angle}deg)`;
         }
 
-        function endDrag() {
+        function onEnd(e) {
             if(!isDragging) return;
             isDragging = false;
-            leverBall.style.cursor = 'grab';
+            leverKnob.style.cursor = 'grab';
 
-            // Если потянули достаточно сильно (>80%) - запускаем спин
-            if(currentRotation > MAX_ROTATION * 0.8) {
-                // Анимация "отскока" рычага вверх
-                animateLeverReturn(true);
-            } else {
-                // Просто возвращаем на место без спина
-                animateLeverReturn(false);
+            // Проверяем текущий угол
+            // Чтобы получить текущий угол, парсим transform или пересчитываем
+            // Проще сохранить последнее значение в onMove, но можно и так:
+            const style = window.getComputedStyle(leverHandle);
+            const matrix = new DOMMatrix(style.transform);
+            // Извлекаем угол примерно (для простоты возьмем последний angle из логики, если бы сохраняли,
+            // но так как мы отпустили, проверим, "глубоко" ли утянули)
+
+            // Получим угол из последнего стиля (это костыль, но рабочий)
+            // Для надежности: если пользователь утянул рычаг достаточно низко (визуально)
+            // Мы знаем, что 130deg - это макс. Если утянули > 100deg - пуск.
+
+            // Проще: мы знаем координаты отпускания. Но лучше пересчитать transform.
+            // Давайте сделаем проще: если mouseUP произошел сильно ниже startY
+            const endY = e.type.includes('touch') ? e.changedTouches[0].clientY : e.clientY;
+            const dist = endY - startY;
+
+            if (dist > 150) { // Если протянули вниз более 150px
+                startSpin();
             }
+
+            resetLever();
         }
 
-        function animateLeverReturn(shouldSpin) {
-            leverArm.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-            leverArm.style.transform = 'rotate(0deg)';
+        leverKnob.addEventListener('mousedown', onStart);
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onEnd);
 
-            // Ждем окончания анимации рычага
-            setTimeout(() => {
-                leverArm.style.transition = ''; // убираем transition для следующего драга
-                if(shouldSpin) startSpin();
-            }, 400);
-        }
-
-        // События для мыши и тача
-        leverBall.addEventListener('mousedown', startDrag);
-        document.addEventListener('mousemove', onDrag);
-        document.addEventListener('mouseup', endDrag);
-
-        leverBall.addEventListener('touchstart', startDrag, {passive: false});
-        document.addEventListener('touchmove', onDrag, {passive: false});
-        document.addEventListener('touchend', endDrag);
+        leverKnob.addEventListener('touchstart', onStart, {passive: false});
+        document.addEventListener('touchmove', onMove, {passive: false});
+        document.addEventListener('touchend', onEnd);
 
 
         // === ЛОГИКА ИГРЫ ===
         function startSpin() {
-            if (balance < SPIN_COST) {
-                messageEl.textContent = "NOT ENOUGH MONEY!";
-                messageEl.style.color = "red";
+            if(balance < 50) {
+                showStatus("NO MONEY!", "red");
                 return;
             }
 
-            balance -= SPIN_COST;
-            updateUI();
-            messageEl.textContent = "GOOD LUCK!";
-            messageEl.style.color = "#fff";
             isSpinning = true;
+            balance -= 50;
+            updateBalance();
+            payline.style.display = 'none';
 
             // Генерируем результат
             const finalSymbols = [];
@@ -426,67 +472,58 @@
                 finalSymbols.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
             }
 
-            // Запускаем вращение каждого барабана
-            reels.forEach((reel, index) => {
-                // Текущая позиция (из transform)
-                const currentY = parseFloat(reel.style.transform.replace('translateY(', '').replace('px)', '')) || 0;
+            // Запускаем барабаны
+            reels.forEach((reel, i) => {
+                // Добавляем новые символы в начало списка
+                const extraCount = 20 + i * 5; // Разное количество для асинхронности
+                const newHtml = generateStripHTML(extraCount);
 
-                // Целевая позиция:
-                // Мы хотим прокрутить "вниз" (или визуально вверх ленту), добавив много новых символов
-                // И в конце подставить наш result
+                // Чтобы анимация была плавной, нам нужно добавить символы "сверху",
+                // но при этом сохранить текущую позицию видимости, а потом анимировать вниз.
+                // Самый простой способ:
+                // 1. Текущий HTML заменяем на Новый + Старый
+                // 2. Смещаем translateY так, чтобы визуально ничего не изменилось
+                // 3. Анимируем transition в 0 (или к новому результату)
 
-                // 1. Добавляем символы в DOM
-                const extraSymbols = 20 + index * 10; // разная длина для эффекта лесенки
-                let htmlToAdd = '';
-                for(let k=0; k<extraSymbols; k++) {
-                    htmlToAdd += `<div class="symbol blur">${SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]}</div>`;
+                // Упрощенный вариант CSS-only:
+                // Просто генерируем новую длинную ленту, где в конце - наш результат.
+                // И ставим её так, чтобы она "проезжала"
+
+                const winSymbolIndex = extraCount - 2; // Предпоследний символ - выигрышный
+
+                // Вставляем выигрышный символ принудительно
+                let stripArr = [];
+                for(let k=0; k<extraCount; k++) {
+                    stripArr.push(SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]);
                 }
-                // В конце добавляем целевой символ (БЕЗ блюра) и еще пару для центровки
-                htmlToAdd += `<div class="symbol" id="res-sym-${index}">${finalSymbols[index]}</div>`;
-                htmlToAdd += `<div class="symbol blur">${SYMBOLS[0]}</div>`; // просто запасной
+                stripArr[winSymbolIndex] = finalSymbols[i];
 
-                reel.innerHTML = htmlToAdd + reel.innerHTML; // Добавляем СВЕРХУ (визуально это будет начало новой прокрутки)
+                // Собираем HTML
+                reel.innerHTML = stripArr.map(s => `<div class="symbol ${Math.random()>0.5?'blur':''}">${s}</div>`).join('');
 
-                // Поскольку мы добавили элементы сверху, позиция сбилась бы. Но мы используем анимацию transition to.
-                // Хитрость: мы сбрасываем transition, ставим ленту высоко, а потом плавно опускаем к целевому символу.
+                // Снимаем блюр с целевого символа
+                const targetDiv = reel.children[winSymbolIndex];
+                targetDiv.classList.remove('blur');
+                targetDiv.id = `res-${i}`;
 
-                // Упрощенный подход для CSS анимации:
-                // Перезаписываем полностью ленту
-                reel.innerHTML = htmlToAdd;
-                const totalH = (extraSymbols + 2) * SYMBOL_HEIGHT;
-
-                // Ставим ленту так, чтобы нижний край был виден (старая позиция) - имитация
+                // Установка начальной позиции (лента задрана вверх)
                 reel.style.transition = 'none';
-                reel.style.transform = `translateY(-${totalH - SYMBOL_HEIGHT * 3}px)`; // Старт снизу
+                reel.style.transform = `translateY(0px)`; // Начало ленты
 
-                // Форсируем reflow
+                // Заставляем браузер применить стили
                 reel.offsetHeight;
 
-                // Анимируем к нужному символу
-                // Целевой символ находится на индексе `extraSymbols`.
-                // Нам нужно, чтобы он встал ровно по центру окна.
-                // Окно высотой ~200px (3 символа по 80px = 240px, но у нас рамки).
-                // Центр окна = 110px. Центр символа = 40px.
-                // Нужно смещение так, чтобы (index * 80) оказалось в нужной точке.
-                // Проще: мы хотим показать символ номер `extraSymbols` (это целевой).
-                // Смещение = - (extraSymbols * 80) + отступ_для_центра
+                // Вычисляем целевую позицию
+                // Мы хотим, чтобы `winSymbolIndex` оказался по центру.
+                // Y = -(winSymbolIndex * 80) + 50
+                const targetY = -(winSymbolIndex * SYMBOL_HEIGHT) + 50;
 
-                const targetY = -(extraSymbols * SYMBOL_HEIGHT) + (240/2 - SYMBOL_HEIGHT/2); // 240 - высота окна
-
-                const duration = 2 + index * 0.5;
-                reel.style.transition = `transform ${duration}s cubic-bezier(0.25, 0.1, 0.25, 1)`;
+                // Анимация
+                const time = 2 + i * 0.5;
+                reel.style.transition = `transform ${time}s cubic-bezier(0.15, 0.1, 0.25, 1)`;
                 reel.style.transform = `translateY(${targetY}px)`;
-
-                // Убираем блюр в конце
-                setTimeout(() => {
-                    const targetEl = document.getElementById(`res-sym-${index}`);
-                    if(targetEl) targetEl.classList.remove('blur');
-                    // Остальные символы можно оставить блюр, или убрать
-                    document.querySelectorAll('.symbol').forEach(el => el.classList.remove('blur'));
-                }, duration * 1000);
             });
 
-            // Проверка выигрыша после остановки последнего барабана
             setTimeout(() => {
                 checkWin(finalSymbols);
                 isSpinning = false;
@@ -495,43 +532,29 @@
 
         function checkWin(results) {
             const [s1, s2, s3] = results;
-            let win = 0;
 
+            // Убираем блюр со всех символов для красоты
+            document.querySelectorAll('.symbol').forEach(el => el.classList.remove('blur'));
+
+            let win = 0;
             if(s1 === s2 && s2 === s3) {
-                // Джекпот 3 в ряд
-                win = PAYOUTS[s1] || 10;
-                messageEl.textContent = `JACKPOT! +${win}`;
-                messageEl.style.color = "#0f0";
-                createCoinsExplosion();
+                win = PAYOUTS[s1] || 100;
+                showStatus(`JACKPOT! +${win}`, '#00ff00');
+                payline.style.display = 'block';
             } else if (s1 === s2 || s2 === s3 || s1 === s3) {
-                // 2 совпадения (упрощенно: любые 2 дают маленький приз)
-                // Найдем какой символ совпал
-                let matchSym = (s1===s2) ? s1 : (s2===s3 ? s2 : s1);
-                // Дадим 20% от полной награды
-                win = Math.floor((PAYOUTS[matchSym] || 10) * 0.2);
-                messageEl.textContent = `NICE! +${win}`;
-                messageEl.style.color = "#ffd700";
+                 win = 20;
+                 showStatus(`SMALL WIN +${win}`, '#ffd700');
             } else {
-                messageEl.textContent = "TRY AGAIN";
+                showStatus("TRY AGAIN", "#ccc");
             }
 
             if(win > 0) {
                 balance += win;
-                updateUI();
-                // Тут можно отправить данные боту
+                updateBalance();
             }
         }
 
-        // Простой эффект салюта (логи в консоль или можно доработать)
-        function createCoinsExplosion() {
-            // Визуальный эффект
-            const winLine = document.querySelector('.win-line');
-            winLine.style.display = 'block';
-            setTimeout(() => winLine.style.display = 'none', 1000);
-        }
-
-        initReels();
-
+        init();
     </script>
 </body>
 </html>
