@@ -179,24 +179,12 @@
         /* === РЫЧАГ (LEVER) === */
         .lever-container {
             position: absolute;
-            right: -50px; /* Сдвиг вправо от корпуса */
-            top: 50px;    /* Высота крепления */
+            right: -30px; /* Придвинул ближе к корпусу, раз крепления нет */
+            top: 50px;
             width: 60px;
             height: 200px;
             z-index: 1;
-        }
-
-        /* База крепления к корпусу */
-        .lever-mount {
-            position: absolute;
-            left: -10px;
-            top: 80px;
-            width: 30px;
-            height: 60px;
-            background: linear-gradient(to right, #888, #ccc);
-            border-radius: 5px;
-            z-index: 2;
-            box-shadow: -5px 0 10px rgba(0,0,0,0.5);
+            /* Убрали серую базу */
         }
 
         /* Подвижная рукоятка */
@@ -207,8 +195,7 @@
             width: 20px;
             height: 120px; /* Длина палки вверх */
             transform-origin: bottom center; /* Вращаем относительно низа */
-            transform: rotate(0deg); /* 0deg - стоит вертикально вверх? Нет, поправим логику */
-            /* Мы сделаем так: палка смотрит вверх. Вращаем ВПЕРЕД (на себя/вниз) */
+            transform: rotate(0deg);
         }
 
         /* Стержень */
@@ -222,6 +209,20 @@
             left: 50%;
             transform: translateX(-50%);
             box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+        }
+
+        /* Круглое основание стержня (для красоты, вместо коробки) */
+        .lever-stick::after {
+             content: '';
+             position: absolute;
+             bottom: -10px;
+             left: 50%;
+             transform: translateX(-50%);
+             width: 25px;
+             height: 25px;
+             background: #b58928;
+             border-radius: 50%;
+             box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
         }
 
         /* Шар */
@@ -292,9 +293,8 @@
             </div>
         </div>
 
-        <!-- Рычаг -->
+        <!-- Рычаг (Без серой коробки) -->
         <div class="lever-container">
-            <div class="lever-mount"></div>
             <!-- Вращающаяся часть -->
             <div class="lever-handle" id="leverHandle">
                 <div class="lever-stick"></div>
@@ -333,14 +333,11 @@
 
         // Инициализация
         function init() {
-            // Заполняем барабаны начальными символами
             reels.forEach(reel => {
                 reel.innerHTML = generateStripHTML(20);
-                // Ставим в начальную позицию (примерно середина)
                 setReelPosition(reel, 10);
             });
 
-            // Баланс из URL
             const urlParams = new URLSearchParams(window.location.search);
             const startBal = parseInt(urlParams.get('balance'));
             if(!isNaN(startBal)) balance = startBal;
@@ -357,11 +354,6 @@
         }
 
         function setReelPosition(reel, index) {
-            // Смещаем `strip` так, чтобы символ `index` был по центру
-            // Центр экрана (высота 180px) = 90px.
-            // Центр символа (высота 80px) = 40px.
-            // Позиция верха символа = index * 80.
-            // transform Y = -(index * 80) + (90 - 40)
             const y = -(index * SYMBOL_HEIGHT) + 50;
             reel.style.transform = `translateY(${y}px)`;
         }
@@ -383,12 +375,11 @@
         let isDragging = false;
         let startY = 0;
 
-        // Настройка анимации возврата
         function resetLever() {
-            leverHandle.style.transition = 'transform 0.5s cubic-bezier(0.5, 1.5, 0.5, 1)'; // Пружинистый возврат
+            leverHandle.style.transition = 'transform 0.5s cubic-bezier(0.5, 1.5, 0.5, 1)';
             leverHandle.style.transform = 'rotate(0deg)';
             setTimeout(() => {
-                leverHandle.style.transition = ''; // Убираем transition для следующего перетаскивания
+                leverHandle.style.transition = '';
             }, 500);
         }
 
@@ -401,17 +392,14 @@
 
         function onMove(e) {
             if(!isDragging) return;
-            e.preventDefault(); // Блокируем скролл
+            e.preventDefault();
 
             const currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
             const deltaY = currentY - startY;
 
-            // Конвертируем движение вниз (px) в угол поворота (deg)
-            // Максимальный угол - 130 градусов (рычаг опускается вниз)
             let angle = deltaY * 0.5;
-
-            if (angle < 0) angle = 0; // Нельзя толкать вверх
-            if (angle > 130) angle = 130; // Ограничитель
+            if (angle < 0) angle = 0;
+            if (angle > 130) angle = 130;
 
             leverHandle.style.transform = `rotate(${angle}deg)`;
         }
@@ -421,27 +409,12 @@
             isDragging = false;
             leverKnob.style.cursor = 'grab';
 
-            // Проверяем текущий угол
-            // Чтобы получить текущий угол, парсим transform или пересчитываем
-            // Проще сохранить последнее значение в onMove, но можно и так:
-            const style = window.getComputedStyle(leverHandle);
-            const matrix = new DOMMatrix(style.transform);
-            // Извлекаем угол примерно (для простоты возьмем последний angle из логики, если бы сохраняли,
-            // но так как мы отпустили, проверим, "глубоко" ли утянули)
-
-            // Получим угол из последнего стиля (это костыль, но рабочий)
-            // Для надежности: если пользователь утянул рычаг достаточно низко (визуально)
-            // Мы знаем, что 130deg - это макс. Если утянули > 100deg - пуск.
-
-            // Проще: мы знаем координаты отпускания. Но лучше пересчитать transform.
-            // Давайте сделаем проще: если mouseUP произошел сильно ниже startY
             const endY = e.type.includes('touch') ? e.changedTouches[0].clientY : e.clientY;
             const dist = endY - startY;
 
-            if (dist > 150) { // Если протянули вниз более 150px
+            if (dist > 150) {
                 startSpin();
             }
-
             resetLever();
         }
 
@@ -466,59 +439,33 @@
             updateBalance();
             payline.style.display = 'none';
 
-            // Генерируем результат
             const finalSymbols = [];
             for(let i=0; i<3; i++) {
                 finalSymbols.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
             }
 
-            // Запускаем барабаны
             reels.forEach((reel, i) => {
-                // Добавляем новые символы в начало списка
-                const extraCount = 20 + i * 5; // Разное количество для асинхронности
-                const newHtml = generateStripHTML(extraCount);
+                const extraCount = 20 + i * 5;
+                const winSymbolIndex = extraCount - 2;
 
-                // Чтобы анимация была плавной, нам нужно добавить символы "сверху",
-                // но при этом сохранить текущую позицию видимости, а потом анимировать вниз.
-                // Самый простой способ:
-                // 1. Текущий HTML заменяем на Новый + Старый
-                // 2. Смещаем translateY так, чтобы визуально ничего не изменилось
-                // 3. Анимируем transition в 0 (или к новому результату)
-
-                // Упрощенный вариант CSS-only:
-                // Просто генерируем новую длинную ленту, где в конце - наш результат.
-                // И ставим её так, чтобы она "проезжала"
-
-                const winSymbolIndex = extraCount - 2; // Предпоследний символ - выигрышный
-
-                // Вставляем выигрышный символ принудительно
                 let stripArr = [];
                 for(let k=0; k<extraCount; k++) {
                     stripArr.push(SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]);
                 }
                 stripArr[winSymbolIndex] = finalSymbols[i];
 
-                // Собираем HTML
                 reel.innerHTML = stripArr.map(s => `<div class="symbol ${Math.random()>0.5?'blur':''}">${s}</div>`).join('');
 
-                // Снимаем блюр с целевого символа
                 const targetDiv = reel.children[winSymbolIndex];
                 targetDiv.classList.remove('blur');
                 targetDiv.id = `res-${i}`;
 
-                // Установка начальной позиции (лента задрана вверх)
                 reel.style.transition = 'none';
-                reel.style.transform = `translateY(0px)`; // Начало ленты
+                reel.style.transform = `translateY(0px)`;
 
-                // Заставляем браузер применить стили
                 reel.offsetHeight;
 
-                // Вычисляем целевую позицию
-                // Мы хотим, чтобы `winSymbolIndex` оказался по центру.
-                // Y = -(winSymbolIndex * 80) + 50
                 const targetY = -(winSymbolIndex * SYMBOL_HEIGHT) + 50;
-
-                // Анимация
                 const time = 2 + i * 0.5;
                 reel.style.transition = `transform ${time}s cubic-bezier(0.15, 0.1, 0.25, 1)`;
                 reel.style.transform = `translateY(${targetY}px)`;
@@ -532,8 +479,6 @@
 
         function checkWin(results) {
             const [s1, s2, s3] = results;
-
-            // Убираем блюр со всех символов для красоты
             document.querySelectorAll('.symbol').forEach(el => el.classList.remove('blur'));
 
             let win = 0;
