@@ -33,7 +33,6 @@
             user-select: none;
         }
 
-        /* ЗВЕЗДЫ */
         .star {
             position: absolute;
             color: #ffd700;
@@ -47,7 +46,6 @@
             50% { opacity: 1; transform: scale(1.2); }
         }
 
-        /* ВЫВЕСКА */
         .neon-sign {
             font-size: 36px;
             color: #fff;
@@ -65,7 +63,6 @@
             position: relative;
         }
 
-        /* АППАРАТ */
         .machine-wrapper {
             position: relative;
             display: flex;
@@ -77,8 +74,8 @@
         }
 
         .slot-machine {
-            width: 340px; /* Чуть шире для панели ставок */
-            height: 320px; /* Выше для панели ставок */
+            width: 340px;
+            height: 320px;
             background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-light) 50%, var(--gold-dark) 100%);
             border-radius: 30px;
             padding: 15px;
@@ -159,7 +156,6 @@
 
         .blur { filter: blur(3px); }
 
-        /* ПАНЕЛЬ УПРАВЛЕНИЯ (Ставки и Баланс) */
         .controls-panel {
             margin-top: 15px;
             width: 100%;
@@ -234,7 +230,6 @@
         }
         .bet-btn:active { transform: translateY(1px); }
 
-        /* РЫЧАГ */
         .lever-container {
             position: absolute;
             right: -30px;
@@ -367,18 +362,16 @@
     <div id="status">ТЯНИ РЫЧАГ!</div>
 
     <script>
-        // === НАСТРОЙКИ ===
         const SYMBOLS = ['💎', '7️⃣', '🔔', '🍒', '🍋', '💰'];
         const SYMBOL_HEIGHT = 80;
 
-        // Множители выигрыша (умножаются на ставку)
         const MULTIPLIERS = {
-            '💎': 20,   // x20
-            '7️⃣': 10,   // x10
-            '💰': 6,    // x6
-            '🔔': 3,    // x3
-            '🍋': 1.5,  // x1.5
-            '🍒': 0.5   // x0.5 (возврат половины)
+            '💎': 20,
+            '7️⃣': 10,
+            '💰': 6,
+            '🔔': 3,
+            '🍋': 1.5,
+            '🍒': 0.5
         };
 
         const reels = [
@@ -396,11 +389,9 @@
         let balance = 1000;
         let isSpinning = false;
 
-        // === АУДИО (НОВЫЕ ЗВУКИ) ===
+        // Аудио контекст
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
-        let spinOscillator = null;
-        let spinGain = null;
         let spinInterval = null;
         let noiseBuffer = null;
 
@@ -446,7 +437,6 @@
             osc.stop(audioCtx.currentTime + duration);
         }
 
-        // ЗВУКИ РЫЧАГА (Оставляем реалистичные)
         function playRatchetSound() {
             const freq = 2000 + Math.random() * 500;
             playFilteredNoise(freq, 0.05, 0.3);
@@ -456,28 +446,20 @@
             playFilteredNoise(800, 0.1, 0.3);
         }
 
-        // === НОВЫЙ ЗВУК ПРОКРУТА (ЭЛЕКТРОННЫЙ) ===
         function startSpinSound() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-
-            // Запускаем ритмичное "тиликанье"
             if(spinInterval) clearInterval(spinInterval);
-
             let note = 0;
             const baseFreq = 400;
-
             spinInterval = setInterval(() => {
-                // Генерируем короткие высокие сигналы
-                // Частота немного меняется для создания динамики
                 const freq = baseFreq + (note % 3) * 100 + Math.random() * 50;
                 playTone(freq, 'square', 0.08, 0.05);
                 note++;
-            }, 80); // Каждые 80мс
+            }, 80);
         }
 
         function stopSpinSound() {
             if(spinInterval) clearInterval(spinInterval);
-            // Финальный "дзынь" остановки
             playTone(800, 'sine', 0.2, 0.1);
         }
 
@@ -487,14 +469,13 @@
                 setTimeout(() => playTone(note, 'sine', 0.4, 0.1), i * 150);
             });
             if (amount >= 100) {
-                // Звук высыпающихся монет
                 for(let k=0; k<10; k++) {
                     setTimeout(() => playFilteredNoise(2000 + Math.random()*1000, 0.05, 0.1), 600 + k*60);
                 }
             }
         }
 
-        // === ИНИЦИАЛИЗАЦИЯ ===
+        // === ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЕ ===
         function init() {
             createNoiseBuffer();
             reels.forEach(reel => {
@@ -502,17 +483,36 @@
                 setReelPosition(reel, 10);
             });
 
+            // 1. Приоритет URL (если бот передал)
             const urlParams = new URLSearchParams(window.location.search);
-            const startBal = parseInt(urlParams.get('balance'));
-            if(!isNaN(startBal)) balance = startBal;
+            const urlBal = parseInt(urlParams.get('balance'));
+
+            // 2. Локальное сохранение
+            const localBal = parseInt(localStorage.getItem('melstroy_slot_balance'));
+
+            if(!isNaN(urlBal)) {
+                balance = urlBal;
+            } else if(!isNaN(localBal)) {
+                balance = localBal;
+            } else {
+                balance = 1000;
+            }
+
+            // Защита от банкротства
+            if(balance < 10) balance = 1000;
+
+            saveBalance(); // Сразу сохраним актуальное
             updateUI();
+        }
+
+        function saveBalance() {
+            localStorage.setItem('melstroy_slot_balance', balance);
         }
 
         function updateUI() {
             balanceEl.textContent = balance;
         }
 
-        // === УПРАВЛЕНИЕ СТАВКАМИ ===
         function adjustBet(action) {
             let currentBet = parseInt(betInput.value) || 10;
 
@@ -521,22 +521,18 @@
             if(action === 'double') currentBet *= 2;
             if(action === 'half') currentBet = Math.floor(currentBet / 2);
 
-            // Ограничения
             if(currentBet < 10) currentBet = 10;
             if(currentBet > balance && balance > 0) currentBet = balance;
 
             betInput.value = currentBet;
         }
 
-        // Валидация ввода
         betInput.addEventListener('change', () => {
             let val = parseInt(betInput.value);
             if(isNaN(val) || val < 10) betInput.value = 10;
             if(val > balance) betInput.value = balance;
         });
 
-
-        // === ГЕНЕРАЦИЯ БАРАБАНОВ ===
         function generateStripHTML(count) {
             let html = '';
             for(let i=0; i<count; i++) {
@@ -547,7 +543,7 @@
         }
 
         function setReelPosition(reel, index) {
-            const y = -(index * SYMBOL_HEIGHT) + 40; // +40 для центровки в окне 160px
+            const y = -(index * SYMBOL_HEIGHT) + 40;
             reel.style.transform = `translateY(${y}px)`;
         }
 
@@ -560,7 +556,6 @@
             }, 3000);
         }
 
-        // === ЛОГИКА РЫЧАГА ===
         let isDragging = false;
         let startY = 0;
         let lastSoundAngle = 0;
@@ -620,7 +615,6 @@
         document.addEventListener('touchend', onEnd);
 
 
-        // === СПИН ===
         function startSpin() {
             const betAmount = parseInt(betInput.value);
 
@@ -631,17 +625,16 @@
 
             isSpinning = true;
             balance -= betAmount;
+            saveBalance(); // Сохраняем списание
             updateUI();
             payline.style.display = 'none';
             statusEl.style.opacity = '0';
 
-            startSpinSound(); // Новый звук!
+            startSpinSound();
 
-            // Генерация результатов
             let finalSymbols = [];
             const luckyChance = Math.random();
 
-            // Подкрутка шансов (35% на выигрыш)
             if (luckyChance < 0.35) {
                 const sym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
                 finalSymbols = [sym, sym, SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]];
@@ -652,7 +645,6 @@
                 }
             }
 
-            // Анимация барабанов
             reels.forEach((reel, i) => {
                 const extraCount = 20 + i * 5;
                 const winSymbolIndex = extraCount - 2;
@@ -674,7 +666,7 @@
 
                 reel.offsetHeight;
 
-                const targetY = -(winSymbolIndex * SYMBOL_HEIGHT) + 40; // +40 центровка
+                const targetY = -(winSymbolIndex * SYMBOL_HEIGHT) + 40;
                 const time = 2 + i * 0.5;
                 reel.style.transition = `transform ${time}s cubic-bezier(0.15, 0.1, 0.25, 1)`;
                 reel.style.transform = `translateY(${targetY}px)`;
@@ -693,16 +685,12 @@
 
             let multiplier = 0;
 
-            // Логика выигрыша
             if(s1 === s2 && s2 === s3) {
-                // 3 совпадения
                 multiplier = MULTIPLIERS[s1];
                 showStatus(`ДЖЕКПОТ! x${multiplier}`, '#00ff00');
                 payline.style.display = 'block';
             } else if (s1 === s2 || s2 === s3 || s1 === s3) {
-                 // 2 совпадения (берем символ пары)
                  const pairSym = (s1 === s2) ? s1 : (s2 === s3 ? s2 : s1);
-                 // Для пары даем 50% от множителя тройки, но не меньше 1
                  multiplier = Math.max(1, MULTIPLIERS[pairSym] * 0.5);
                  showStatus(`ВЫИГРЫШ! x${multiplier}`, '#ffd700');
             }
@@ -710,8 +698,8 @@
             if(multiplier > 0) {
                 const winAmount = Math.floor(bet * multiplier);
                 balance += winAmount;
+                saveBalance(); // Сохраняем выигрыш
                 playWinSound(winAmount);
-                // Показываем сумму выигрыша через секунду
                 setTimeout(() => showStatus(`+${winAmount}`, '#fff'), 1000);
             } else {
                 showStatus("ПОПРОБУЙ ЕЩЕ", "#ccc");
