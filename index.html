@@ -23,7 +23,7 @@
             margin: 0;
             padding: 0;
             width: 100%;
-            height: 100vh; /* Используем vh для полной высоты экрана */
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -35,7 +35,7 @@
         /* Контейнер для центрирования и масштабирования */
         .casino-container {
             position: relative;
-            transform: scale(0.9); /* Начальный масштаб */
+            transform: scale(0.9);
             transition: transform 0.3s;
         }
 
@@ -53,7 +53,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: relative; /* Для позиционирования рычага */
+            position: relative;
             z-index: 2;
         }
 
@@ -91,15 +91,14 @@
         .reel {
             width: 90px;
             height: 9000px;
-            /* Новая, более качественная графика для символов */
-            background-image: url('https://i.imgur.com/vB1q5dF.png');
+            /* === НОВЫЙ СПРАЙТ С ЭМОДЗИ === */
+            background-image: url('https://i.imgur.com/SYsJm0x.png');
             background-size: 90px 540px; /* 90px * 6 символов */
             background-repeat: repeat-y;
         }
 
-        /* Класс для эффекта размытия во время вращения */
         .reel.spinning {
-            filter: blur(2px);
+            filter: blur(3px); /* Увеличим размытие для скорости */
         }
 
         /* Сообщение о выигрыше/проигрыше */
@@ -110,9 +109,14 @@
             text-align: center;
             color: #fff;
             text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+            transition: transform 0.2s;
+        }
+        #message.win {
+            transform: scale(1.2);
+            color: var(--gold-trim);
         }
 
-        /* Рычаг - контейнер и стили */
+        /* Рычаг - без изменений */
         .lever-assembly {
             position: absolute;
             right: -75px;
@@ -121,7 +125,6 @@
             height: 250px;
             z-index: 1;
         }
-
         .lever-base {
             width: 50px;
             height: 50px;
@@ -132,7 +135,6 @@
             left: 15px;
             box-shadow: 0 5px 10px rgba(0,0,0,0.5);
         }
-
         .lever {
             width: 80px;
             height: 220px;
@@ -141,9 +143,8 @@
             left: 0;
             cursor: pointer;
             transform-origin: bottom center;
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* "Пружинящая" анимация */
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
-
         .lever-stick {
             width: 14px;
             height: 180px;
@@ -153,7 +154,6 @@
             bottom: 0;
             left: calc(50% - 7px);
         }
-
         .lever-ball {
             width: 70px;
             height: 70px;
@@ -164,21 +164,16 @@
             left: calc(50% - 35px);
             box-shadow: inset -5px -5px 15px rgba(0,0,0,0.4), 0 5px 10px rgba(0,0,0,0.4);
         }
-
         .lever.pulled {
             transform: rotate(60deg);
         }
 
-        /* Адаптация для мобильных устройств */
+        /* Адаптация - без изменений */
         @media (max-width: 450px) {
-            .casino-container {
-                transform: scale(0.8) translateY(-50px);
-            }
+            .casino-container { transform: scale(0.8) translateY(-50px); }
         }
         @media (max-height: 500px) {
-             .casino-container {
-                transform: scale(0.7);
-            }
+             .casino-container { transform: scale(0.7); }
         }
 
     </style>
@@ -209,7 +204,16 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const symbols = ['7️⃣', '🔔', '🍉', '🍋', '🍒', ' BAR']; // 6 символов, заменил на более классические
+            /* === НОВЫЙ НАБОР СИМВОЛОВ И ВЫПЛАТ === */
+            const symbols = ['💎', '💰', '7️⃣', '⭐', '🔔', '🍒'];
+            const payouts = {
+                '💎': { '3': 5000 },
+                '💰': { '3': 2000 },
+                '7️⃣': { '3': 1500 },
+                '⭐': { '3': 1000 },
+                '🔔': { '3': 500 },
+                '🍒': { '3': 250, '2': 50 } // Вишенки платят и за 2 в ряду
+            };
             const symbolHeight = 90;
 
             const reels = [
@@ -250,39 +254,33 @@
                 balance -= spinCost;
                 updateBalanceDisplay();
                 message.textContent = "";
+                message.classList.remove('win');
 
-                // Анимация рычага
                 lever.classList.add('pulled');
                 setTimeout(() => lever.classList.remove('pulled'), 400);
 
                 let results = [];
 
                 reels.forEach((reel, i) => {
-                    reel.classList.add('spinning'); // Добавляем размытие
-                    // Улучшенная анимация вращения
-                    const spinDuration = 2.5 + i * 0.5; // Барабаны останавливаются последовательно
+                    reel.classList.add('spinning');
+                    const spinDuration = 2.5 + i * 0.5;
                     reel.style.transition = `background-position-y ${spinDuration}s cubic-bezier(.42,0, .58,1)`;
 
                     const randomSymbolIndex = Math.floor(Math.random() * symbols.length);
                     results.push(randomSymbolIndex);
 
-                    // Вычисляем конечное положение
                     const finalBgPos = -(reel.offsetHeight - symbolHeight) + (randomSymbolIndex * symbolHeight);
-
-                    // Добавляем несколько полных прокруток для визуального эффекта
                     const extraSpins = 10;
                     const spinDistance = extraSpins * (symbolHeight * symbols.length);
 
-                    // Устанавливаем начальное положение "за кадром" для бесшовной прокрутки
                     reel.style.backgroundPositionY = `${finalBgPos + spinDistance}px`;
                 });
 
-                // Проверяем результат после окончания анимации самого длинного барабана
                 setTimeout(() => {
-                    reels.forEach(reel => reel.classList.remove('spinning')); // Убираем размытие
+                    reels.forEach(reel => reel.classList.remove('spinning'));
                     checkWin(results);
                     isSpinning = false;
-                }, 3500); // 2.5s (первый) + 0.5s (второй) + 0.5s (третий) = 3.5s
+                }, 3500);
             }
 
             function checkWin(results) {
@@ -291,23 +289,17 @@
                 let winAmount = 0;
 
                 if (r1 === r2 && r2 === r3) { // Три в ряд
-                    if (r1 === '7️⃣') winAmount = 5000;
-                    else if (r1 === ' BAR') winAmount = 2500;
-                    else if (r1 === '🔔') winAmount = 1000;
-                    else if (r1 === '🍉') winAmount = 500;
-                    else if (r1 === '🍋') winAmount = 250;
-                    else if (r1 === '🍒') winAmount = 100;
-                } else if ((r1 === r2 && r1 === '🍒') || (r2 === r3 && r2 === '🍒')) { // Две вишенки
-                    winAmount = 75;
+                    winAmount = payouts[r1]['3'] || 0;
+                } else if (r1 === r2 && payouts[r1] && payouts[r1]['2']) { // Два в ряд (только для вишен)
+                    winAmount = payouts[r1]['2'];
                 }
 
                 if (winAmount > 0) {
                     balance += winAmount;
                     message.textContent = `Выигрыш: ${winAmount}!`;
-                    message.style.color = '#FFD700';
+                    message.classList.add('win');
                 } else {
                     message.textContent = "Попробуйте еще!";
-                    message.style.color = 'white';
                 }
                 updateBalanceDisplay();
             }
