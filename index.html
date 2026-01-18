@@ -33,6 +33,7 @@
             user-select: none;
         }
 
+        /* ЗВЕЗДЫ */
         .star {
             position: absolute;
             color: #ffd700;
@@ -46,24 +47,25 @@
             50% { opacity: 1; transform: scale(1.2); }
         }
 
+        /* ВЫВЕСКА */
         .neon-sign {
-            font-size: 42px;
+            font-size: 36px;
             color: #fff;
             text-transform: uppercase;
             letter-spacing: 2px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             text-align: center;
             line-height: 1.1;
             text-shadow:
                 0 0 5px #fff,
                 0 0 10px #fff,
                 0 0 20px var(--neon-pink),
-                0 0 40px var(--neon-pink),
-                0 0 80px var(--neon-pink);
+                0 0 40px var(--neon-pink);
             z-index: 2;
             position: relative;
         }
 
+        /* АППАРАТ */
         .machine-wrapper {
             position: relative;
             display: flex;
@@ -75,11 +77,11 @@
         }
 
         .slot-machine {
-            width: 320px;
-            height: 260px;
+            width: 340px; /* Чуть шире для панели ставок */
+            height: 320px; /* Выше для панели ставок */
             background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-light) 50%, var(--gold-dark) 100%);
             border-radius: 30px;
-            padding: 20px;
+            padding: 15px;
             box-shadow:
                 inset 0 0 20px rgba(255, 255, 255, 0.5),
                 0 20px 50px rgba(0,0,0,0.6),
@@ -92,10 +94,10 @@
 
         .screen-border {
             width: 100%;
-            height: 180px;
+            height: 160px;
             background: #2a1f08;
             border-radius: 15px;
-            padding: 10px;
+            padding: 8px;
             box-shadow: inset 0 0 15px #000;
             display: flex;
             justify-content: center;
@@ -152,25 +154,87 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 50px;
+            font-size: 45px;
         }
 
         .blur { filter: blur(3px); }
 
-        .info-panel {
+        /* ПАНЕЛЬ УПРАВЛЕНИЯ (Ставки и Баланс) */
+        .controls-panel {
             margin-top: 15px;
-            background: #000;
-            border: 2px solid var(--gold-light);
-            border-radius: 20px;
-            padding: 5px 20px;
-            color: var(--gold-light);
-            font-size: 18px;
-            text-align: center;
-            width: 80%;
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-            text-transform: uppercase;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
+        .balance-box {
+            background: #000;
+            border: 2px solid var(--gold-light);
+            border-radius: 10px;
+            padding: 5px;
+            color: #0f0;
+            font-size: 16px;
+            text-align: center;
+            text-transform: uppercase;
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.2);
+        }
+
+        .bet-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0,0,0,0.6);
+            border-radius: 10px;
+            padding: 5px;
+            border: 1px solid var(--gold-shadow);
+        }
+
+        .bet-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex: 1;
+        }
+
+        .bet-label {
+            color: var(--gold-light);
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        #betInput {
+            width: 70px;
+            background: #000;
+            border: 1px solid var(--gold-light);
+            color: #fff;
+            padding: 5px;
+            border-radius: 5px;
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .bet-buttons {
+            display: flex;
+            gap: 3px;
+        }
+
+        .bet-btn {
+            background: linear-gradient(to bottom, #fceabb, #f8b500);
+            border: none;
+            border-radius: 4px;
+            padding: 5px 8px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #5a3e08;
+            cursor: pointer;
+            box-shadow: 0 2px 2px rgba(0,0,0,0.3);
+        }
+        .bet-btn:active { transform: translateY(1px); }
+
+        /* РЫЧАГ */
         .lever-container {
             position: absolute;
             right: -30px;
@@ -237,7 +301,7 @@
             color: #fff;
             text-shadow: 0 2px 4px #000;
             z-index: 10;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.8);
             padding: 10px 20px;
             border-radius: 20px;
             opacity: 0;
@@ -246,8 +310,8 @@
         }
 
         @media (max-width: 450px) {
-            .machine-wrapper { transform: scale(0.85); }
-            .neon-sign { font-size: 32px; }
+            .machine-wrapper { transform: scale(0.9); }
+            .neon-sign { font-size: 30px; }
         }
 
     </style>
@@ -273,8 +337,22 @@
                 </div>
             </div>
 
-            <div class="info-panel">
-                <span id="balance">БАЛАНС: 1000</span>
+            <div class="controls-panel">
+                <div class="balance-box">
+                    БАЛАНС: <span id="balance">1000</span>
+                </div>
+                <div class="bet-controls">
+                    <div class="bet-input-wrapper">
+                        <span class="bet-label">СТАВКА:</span>
+                        <input type="number" id="betInput" value="50" min="10" step="10">
+                    </div>
+                    <div class="bet-buttons">
+                        <button class="bet-btn" onclick="adjustBet('min')">MIN</button>
+                        <button class="bet-btn" onclick="adjustBet('half')">/2</button>
+                        <button class="bet-btn" onclick="adjustBet('double')">x2</button>
+                        <button class="bet-btn" onclick="adjustBet('max')">MAX</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -292,9 +370,15 @@
         // === НАСТРОЙКИ ===
         const SYMBOLS = ['💎', '7️⃣', '🔔', '🍒', '🍋', '💰'];
         const SYMBOL_HEIGHT = 80;
-        const PAYOUTS = {
-            '💎': 1000, '7️⃣': 500, '💰': 300,
-            '🔔': 150, '🍋': 50, '🍒': 20
+
+        // Множители выигрыша (умножаются на ставку)
+        const MULTIPLIERS = {
+            '💎': 20,   // x20
+            '7️⃣': 10,   // x10
+            '💰': 6,    // x6
+            '🔔': 3,    // x3
+            '🍋': 1.5,  // x1.5
+            '🍒': 0.5   // x0.5 (возврат половины)
         };
 
         const reels = [
@@ -303,6 +387,7 @@
             document.getElementById('reel3')
         ];
         const balanceEl = document.getElementById('balance');
+        const betInput = document.getElementById('betInput');
         const statusEl = document.getElementById('status');
         const payline = document.querySelector('.payline');
         const leverHandle = document.getElementById('leverHandle');
@@ -311,18 +396,17 @@
         let balance = 1000;
         let isSpinning = false;
 
-        // === ПРОФЕССИОНАЛЬНЫЙ ЗВУКОВОЙ ДВИЖОК ===
+        // === АУДИО (НОВЫЕ ЗВУКИ) ===
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
-        let motorOscillator = null;
-        let motorGain = null;
-        let tickInterval = null;
+        let spinOscillator = null;
+        let spinGain = null;
+        let spinInterval = null;
         let noiseBuffer = null;
 
-        // Создаем буфер белого шума (1 секунда) для реалистичных эффектов
         function createNoiseBuffer() {
             if(noiseBuffer) return;
-            const bufferSize = audioCtx.sampleRate; // 1 секунда
+            const bufferSize = audioCtx.sampleRate;
             noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const output = noiseBuffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) {
@@ -330,29 +414,24 @@
             }
         }
 
-        // Вспомогательная функция: Играть шум с фильтром и огибающей
         function playFilteredNoise(filterFreq, duration, vol) {
             if (!audioCtx) return;
             createNoiseBuffer();
-
             const noise = audioCtx.createBufferSource();
             noise.buffer = noiseBuffer;
-            const noiseFilter = audioCtx.createBiquadFilter();
-            noiseFilter.type = 'bandpass';
-            noiseFilter.frequency.value = filterFreq;
-            noiseFilter.Q.value = 5; // Узкая полоса для "металлического" звука
-
-            const noiseGain = audioCtx.createGain();
-            noiseGain.gain.setValueAtTime(vol, audioCtx.currentTime);
-            noiseGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-
-            noise.connect(noiseFilter);
-            noiseFilter.connect(noiseGain);
-            noiseGain.connect(audioCtx.destination);
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = filterFreq;
+            filter.Q.value = 5;
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
             noise.start();
         }
 
-        // Простой тон для тональных звуков
         function playTone(freq, type, duration, vol = 0.1) {
             if (!audioCtx) return;
             const osc = audioCtx.createOscillator();
@@ -367,68 +446,39 @@
             osc.stop(audioCtx.currentTime + duration);
         }
 
-        // 1. РЕАЛИСТИЧНАЯ ТРЕЩОТКА (КЛИК МЕТАЛЛА)
+        // ЗВУКИ РЫЧАГА (Оставляем реалистичные)
         function playRatchetSound() {
-            // Импульс шума на высоких частотах = клик металла
-            // Немного рандомизируем частоту для "живости"
             const freq = 2000 + Math.random() * 500;
             playFilteredNoise(freq, 0.05, 0.3);
         }
-
-        // 2. ТЯЖЕЛЫЙ УДАР ПРИ ОТПУСКАНИИ (CLUNK)
         function playLeverClunk() {
-            // A. Низкий "Бум" (Тяжесть)
             playTone(60, 'triangle', 0.2, 0.4);
-
-            // B. Металлический удар (Шум)
             playFilteredNoise(800, 0.1, 0.3);
-
-            // C. Лязг (Высокий звон)
-            setTimeout(() => playTone(1200, 'sine', 0.1, 0.05), 10);
         }
 
-        // 3. ЗВУК ВРАЩЕНИЯ (МОТОР + ШЕЛЕСТ)
-        function startMotorSound() {
+        // === НОВЫЙ ЗВУК ПРОКРУТА (ЭЛЕКТРОННЫЙ) ===
+        function startSpinSound() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
-            // Гул мотора
-            motorOscillator = audioCtx.createOscillator();
-            motorGain = audioCtx.createGain();
-            motorOscillator.type = 'sawtooth';
-            motorOscillator.frequency.value = 50;
+            // Запускаем ритмичное "тиликанье"
+            if(spinInterval) clearInterval(spinInterval);
 
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.value = 200;
+            let note = 0;
+            const baseFreq = 400;
 
-            motorOscillator.connect(filter);
-            filter.connect(motorGain);
-            motorGain.connect(audioCtx.destination);
-
-            motorGain.gain.setValueAtTime(0, audioCtx.currentTime);
-            motorGain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.5);
-            motorOscillator.start();
-
-            // Механический шелест барабанов
-            if(tickInterval) clearInterval(tickInterval);
-            tickInterval = setInterval(() => {
-                // Короткие всплески белого шума для имитации трения
-                playFilteredNoise(1500 + Math.random()*500, 0.03, 0.05);
-            }, 90);
+            spinInterval = setInterval(() => {
+                // Генерируем короткие высокие сигналы
+                // Частота немного меняется для создания динамики
+                const freq = baseFreq + (note % 3) * 100 + Math.random() * 50;
+                playTone(freq, 'square', 0.08, 0.05);
+                note++;
+            }, 80); // Каждые 80мс
         }
 
-        function stopMotorSound() {
-            if(motorOscillator) {
-                const currTime = audioCtx.currentTime;
-                motorGain.gain.setValueAtTime(motorGain.gain.value, currTime);
-                motorGain.gain.linearRampToValueAtTime(0, currTime + 0.5);
-                motorOscillator.stop(currTime + 0.5);
-                motorOscillator = null;
-            }
-            if(tickInterval) clearInterval(tickInterval);
-
-            // Звук тормозов (пшшш)
-            playFilteredNoise(500, 0.3, 0.2);
+        function stopSpinSound() {
+            if(spinInterval) clearInterval(spinInterval);
+            // Финальный "дзынь" остановки
+            playTone(800, 'sine', 0.2, 0.1);
         }
 
         function playWinSound(amount) {
@@ -437,15 +487,16 @@
                 setTimeout(() => playTone(note, 'sine', 0.4, 0.1), i * 150);
             });
             if (amount >= 100) {
-                for(let k=0; k<8; k++) {
-                    setTimeout(() => playTone(1500 + Math.random()*1000, 'triangle', 0.1, 0.05), 600 + k*80);
+                // Звук высыпающихся монет
+                for(let k=0; k<10; k++) {
+                    setTimeout(() => playFilteredNoise(2000 + Math.random()*1000, 0.05, 0.1), 600 + k*60);
                 }
             }
         }
 
         // === ИНИЦИАЛИЗАЦИЯ ===
         function init() {
-            createNoiseBuffer(); // Подготовим звук
+            createNoiseBuffer();
             reels.forEach(reel => {
                 reel.innerHTML = generateStripHTML(20);
                 setReelPosition(reel, 10);
@@ -454,9 +505,38 @@
             const urlParams = new URLSearchParams(window.location.search);
             const startBal = parseInt(urlParams.get('balance'));
             if(!isNaN(startBal)) balance = startBal;
-            updateBalance();
+            updateUI();
         }
 
+        function updateUI() {
+            balanceEl.textContent = balance;
+        }
+
+        // === УПРАВЛЕНИЕ СТАВКАМИ ===
+        function adjustBet(action) {
+            let currentBet = parseInt(betInput.value) || 10;
+
+            if(action === 'min') currentBet = 10;
+            if(action === 'max') currentBet = balance > 0 ? balance : 10;
+            if(action === 'double') currentBet *= 2;
+            if(action === 'half') currentBet = Math.floor(currentBet / 2);
+
+            // Ограничения
+            if(currentBet < 10) currentBet = 10;
+            if(currentBet > balance && balance > 0) currentBet = balance;
+
+            betInput.value = currentBet;
+        }
+
+        // Валидация ввода
+        betInput.addEventListener('change', () => {
+            let val = parseInt(betInput.value);
+            if(isNaN(val) || val < 10) betInput.value = 10;
+            if(val > balance) betInput.value = balance;
+        });
+
+
+        // === ГЕНЕРАЦИЯ БАРАБАНОВ ===
         function generateStripHTML(count) {
             let html = '';
             for(let i=0; i<count; i++) {
@@ -467,12 +547,8 @@
         }
 
         function setReelPosition(reel, index) {
-            const y = -(index * SYMBOL_HEIGHT) + 50;
+            const y = -(index * SYMBOL_HEIGHT) + 40; // +40 для центровки в окне 160px
             reel.style.transform = `translateY(${y}px)`;
-        }
-
-        function updateBalance() {
-            balanceEl.textContent = `БАЛАНС: ${balance}`;
         }
 
         function showStatus(text, color='#fff') {
@@ -500,7 +576,6 @@
         function onStart(e) {
             if(isSpinning) return;
             if (audioCtx.state === 'suspended') audioCtx.resume();
-
             isDragging = true;
             startY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
             leverKnob.style.cursor = 'grabbing';
@@ -510,20 +585,16 @@
         function onMove(e) {
             if(!isDragging) return;
             e.preventDefault();
-
             const currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
             const deltaY = currentY - startY;
-
             let angle = deltaY * 0.5;
             if (angle < 0) angle = 0;
             if (angle > 130) angle = 130;
 
-            // Звук трещотки каждые 15 градусов
             if (Math.abs(angle - lastSoundAngle) > 15) {
                 playRatchetSound();
                 lastSoundAngle = angle;
             }
-
             leverHandle.style.transform = `rotate(${angle}deg)`;
         }
 
@@ -531,18 +602,12 @@
             if(!isDragging) return;
             isDragging = false;
             leverKnob.style.cursor = 'grab';
-
             const endY = e.type.includes('touch') ? e.changedTouches[0].clientY : e.clientY;
             const dist = endY - startY;
 
             if (dist > 150) {
-                // Сначала удар рычага
                 playLeverClunk();
-
-                // Чуть позже старт вращения
-                setTimeout(() => {
-                    startSpin();
-                }, 250);
+                setTimeout(() => startSpin(), 250);
             }
             resetLever();
         }
@@ -550,7 +615,6 @@
         leverKnob.addEventListener('mousedown', onStart);
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onEnd);
-
         leverKnob.addEventListener('touchstart', onStart, {passive: false});
         document.addEventListener('touchmove', onMove, {passive: false});
         document.addEventListener('touchend', onEnd);
@@ -558,22 +622,26 @@
 
         // === СПИН ===
         function startSpin() {
-            if(balance < 50) {
+            const betAmount = parseInt(betInput.value);
+
+            if(balance < betAmount) {
                 showStatus("НЕДОСТАТОЧНО СРЕДСТВ!", "red");
                 return;
             }
 
             isSpinning = true;
-            balance -= 50;
-            updateBalance();
+            balance -= betAmount;
+            updateUI();
             payline.style.display = 'none';
             statusEl.style.opacity = '0';
 
-            startMotorSound();
+            startSpinSound(); // Новый звук!
 
+            // Генерация результатов
             let finalSymbols = [];
             const luckyChance = Math.random();
 
+            // Подкрутка шансов (35% на выигрыш)
             if (luckyChance < 0.35) {
                 const sym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
                 finalSymbols = [sym, sym, SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]];
@@ -584,6 +652,7 @@
                 }
             }
 
+            // Анимация барабанов
             reels.forEach((reel, i) => {
                 const extraCount = 20 + i * 5;
                 const winSymbolIndex = extraCount - 2;
@@ -605,41 +674,50 @@
 
                 reel.offsetHeight;
 
-                const targetY = -(winSymbolIndex * SYMBOL_HEIGHT) + 50;
+                const targetY = -(winSymbolIndex * SYMBOL_HEIGHT) + 40; // +40 центровка
                 const time = 2 + i * 0.5;
                 reel.style.transition = `transform ${time}s cubic-bezier(0.15, 0.1, 0.25, 1)`;
                 reel.style.transform = `translateY(${targetY}px)`;
             });
 
             setTimeout(() => {
-                stopMotorSound();
-                checkWin(finalSymbols);
+                stopSpinSound();
+                checkWin(finalSymbols, betAmount);
                 isSpinning = false;
             }, 3500);
         }
 
-        function checkWin(results) {
+        function checkWin(results, bet) {
             const [s1, s2, s3] = results;
             document.querySelectorAll('.symbol').forEach(el => el.classList.remove('blur'));
 
-            let win = 0;
+            let multiplier = 0;
+
+            // Логика выигрыша
             if(s1 === s2 && s2 === s3) {
-                win = PAYOUTS[s1] || 100;
-                showStatus(`ДЖЕКПОТ! +${win}`, '#00ff00');
+                // 3 совпадения
+                multiplier = MULTIPLIERS[s1];
+                showStatus(`ДЖЕКПОТ! x${multiplier}`, '#00ff00');
                 payline.style.display = 'block';
-                playWinSound(win);
             } else if (s1 === s2 || s2 === s3 || s1 === s3) {
-                 win = 30;
-                 showStatus(`ВЫИГРЫШ +${win}`, '#ffd700');
-                 playWinSound(win);
+                 // 2 совпадения (берем символ пары)
+                 const pairSym = (s1 === s2) ? s1 : (s2 === s3 ? s2 : s1);
+                 // Для пары даем 50% от множителя тройки, но не меньше 1
+                 multiplier = Math.max(1, MULTIPLIERS[pairSym] * 0.5);
+                 showStatus(`ВЫИГРЫШ! x${multiplier}`, '#ffd700');
+            }
+
+            if(multiplier > 0) {
+                const winAmount = Math.floor(bet * multiplier);
+                balance += winAmount;
+                playWinSound(winAmount);
+                // Показываем сумму выигрыша через секунду
+                setTimeout(() => showStatus(`+${winAmount}`, '#fff'), 1000);
             } else {
                 showStatus("ПОПРОБУЙ ЕЩЕ", "#ccc");
             }
 
-            if(win > 0) {
-                balance += win;
-                updateBalance();
-            }
+            updateUI();
         }
 
         init();
