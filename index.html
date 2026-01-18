@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casino Deluxe</title>
+    <title>Melstroy Slot</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap');
 
@@ -11,6 +11,7 @@
             --bg-dark: #051e3e;
             --bg-light: #1e5799;
             --neon-blue: #00f2ff;
+            --neon-pink: #ff00de;
             --gold-light: #fceabb;
             --gold-dark: #f8b500;
             --gold-shadow: #b06602;
@@ -46,19 +47,21 @@
             50% { opacity: 1; transform: scale(1.2); }
         }
 
-        /* === ВЫВЕСКА === */
+        /* === ВЫВЕСКА MELSTROY SLOT === */
         .neon-sign {
-            font-size: 50px;
+            font-size: 42px; /* Чуть меньше, чтобы влезло длинное слово */
             color: #fff;
             text-transform: uppercase;
-            letter-spacing: 5px;
+            letter-spacing: 2px;
             margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.1;
             text-shadow:
                 0 0 5px #fff,
                 0 0 10px #fff,
-                0 0 20px var(--neon-blue),
-                0 0 40px var(--neon-blue),
-                0 0 80px var(--neon-blue);
+                0 0 20px var(--neon-pink), /* Розовое свечение для стиля */
+                0 0 40px var(--neon-pink),
+                0 0 80px var(--neon-pink);
             z-index: 2;
             position: relative;
         }
@@ -82,9 +85,9 @@
             border-radius: 30px;
             padding: 20px;
             box-shadow:
-                inset 0 0 20px rgba(255, 255, 255, 0.5), /* Блик внутри */
-                0 20px 50px rgba(0,0,0,0.6), /* Тень снаружи */
-                0 0 0 5px var(--gold-shadow); /* Контур */
+                inset 0 0 20px rgba(255, 255, 255, 0.5),
+                0 20px 50px rgba(0,0,0,0.6),
+                0 0 0 5px var(--gold-shadow);
             position: relative;
             display: flex;
             flex-direction: column;
@@ -134,7 +137,7 @@
             transform: translateY(-50%);
             z-index: 5;
             box-shadow: 0 0 10px red;
-            display: none; /* Скрыта по умолчанию */
+            display: none;
         }
 
         .reel {
@@ -149,11 +152,10 @@
             top: 0;
             left: 0;
             width: 100%;
-            /* transform управляется через JS */
         }
 
         .symbol {
-            height: 80px; /* Высота одной ячейки */
+            height: 80px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -174,31 +176,29 @@
             text-align: center;
             width: 80%;
             box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+            text-transform: uppercase;
         }
 
-        /* === РЫЧАГ (LEVER) === */
+        /* === РЫЧАГ === */
         .lever-container {
             position: absolute;
-            right: -30px; /* Придвинул ближе к корпусу, раз крепления нет */
+            right: -30px;
             top: 50px;
             width: 60px;
             height: 200px;
             z-index: 1;
-            /* Убрали серую базу */
         }
 
-        /* Подвижная рукоятка */
         .lever-handle {
             position: absolute;
             left: 10px;
-            top: 110px; /* Точка вращения (pivot point) */
+            top: 110px;
             width: 20px;
-            height: 120px; /* Длина палки вверх */
-            transform-origin: bottom center; /* Вращаем относительно низа */
+            height: 120px;
+            transform-origin: bottom center;
             transform: rotate(0deg);
         }
 
-        /* Стержень */
         .lever-stick {
             width: 15px;
             height: 100%;
@@ -211,7 +211,6 @@
             box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
         }
 
-        /* Круглое основание стержня (для красоты, вместо коробки) */
         .lever-stick::after {
              content: '';
              position: absolute;
@@ -225,14 +224,13 @@
              box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
         }
 
-        /* Шар */
         .lever-knob {
             width: 60px;
             height: 60px;
             background: radial-gradient(circle at 30% 30%, #ff5e5e, var(--red-ball));
             border-radius: 50%;
             position: absolute;
-            top: -30px; /* На верхушке палки */
+            top: -30px;
             left: 50%;
             transform: translateX(-50%);
             box-shadow: inset -5px -5px 15px rgba(0,0,0,0.3), 5px 10px 15px rgba(0,0,0,0.4);
@@ -254,12 +252,13 @@
             border-radius: 20px;
             opacity: 0;
             transition: opacity 0.3s;
+            text-align: center;
         }
 
-        /* Адаптив для маленьких экранов */
+        /* Адаптив */
         @media (max-width: 450px) {
             .machine-wrapper { transform: scale(0.85); }
-            .neon-sign { font-size: 40px; }
+            .neon-sign { font-size: 32px; }
         }
 
     </style>
@@ -271,12 +270,10 @@
     <div class="star" style="top: 20%; right: 15%; animation-delay: 1s;">★</div>
     <div class="star" style="top: 80%; left: 20%; animation-delay: 0.5s;">★</div>
     <div class="star" style="top: 70%; right: 10%; animation-delay: 1.5s;">★</div>
-    <div class="star" style="top: 15%; left: 50%; font-size: 10px;">★</div>
 
-    <div class="neon-sign">CASINO</div>
+    <div class="neon-sign">MELSTROY<br>SLOT</div>
 
     <div class="machine-wrapper">
-        <!-- Аппарат -->
         <div class="slot-machine">
             <div class="screen-border">
                 <div class="reels-container">
@@ -289,13 +286,11 @@
             </div>
 
             <div class="info-panel">
-                <span id="balance">BALANCE: 1000</span>
+                <span id="balance">БАЛАНС: 1000</span>
             </div>
         </div>
 
-        <!-- Рычаг (Без серой коробки) -->
         <div class="lever-container">
-            <!-- Вращающаяся часть -->
             <div class="lever-handle" id="leverHandle">
                 <div class="lever-stick"></div>
                 <div class="lever-knob" id="leverKnob"></div>
@@ -303,18 +298,17 @@
         </div>
     </div>
 
-    <div id="status">WIN! +500</div>
+    <div id="status">ТЯНИ РЫЧАГ!</div>
 
     <script>
         // === НАСТРОЙКИ ===
         const SYMBOLS = ['💎', '7️⃣', '🔔', '🍒', '🍋', '🍉', '⭐', '💰', '🍊'];
-        const SYMBOL_HEIGHT = 80; // px, должно совпадать с CSS
+        const SYMBOL_HEIGHT = 80;
         const PAYOUTS = {
             '💎': 1000, '7️⃣': 500, '💰': 300, '⭐': 200,
             '🔔': 100, '🍉': 50, '🍒': 20
         };
 
-        // Элементы
         const reels = [
             document.getElementById('reel1'),
             document.getElementById('reel2'),
@@ -323,15 +317,62 @@
         const balanceEl = document.getElementById('balance');
         const statusEl = document.getElementById('status');
         const payline = document.querySelector('.payline');
-
-        // Рычаг
         const leverHandle = document.getElementById('leverHandle');
         const leverKnob = document.getElementById('leverKnob');
 
         let balance = 1000;
         let isSpinning = false;
 
-        // Инициализация
+        // === ЗВУКОВОЙ ДВИЖОК (Web Audio API) ===
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        // Простой генератор звука
+        function playTone(freq, type, duration, vol = 0.1) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playLeverSound() {
+            // Механический "хруст"
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            playTone(100, 'sawtooth', 0.1, 0.05);
+        }
+
+        function playSpinSound() {
+            // Электронное тиканье
+            let count = 0;
+            const interval = setInterval(() => {
+                if(!isSpinning) { clearInterval(interval); return; }
+                if(count % 5 === 0) playTone(400, 'square', 0.05, 0.02);
+                count++;
+            }, 100);
+        }
+
+        function playWinSound(amount) {
+            // Победный джингл
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C Major arpeggio
+            notes.forEach((note, i) => {
+                setTimeout(() => playTone(note, 'sine', 0.3, 0.1), i * 150);
+            });
+            // Звук монет, если крупный выигрыш
+            if (amount >= 100) {
+                for(let k=0; k<5; k++) {
+                    setTimeout(() => playTone(1200 + Math.random()*500, 'triangle', 0.1, 0.05), 600 + k*100);
+                }
+            }
+        }
+
+        // === ЛОГИКА ===
         function init() {
             reels.forEach(reel => {
                 reel.innerHTML = generateStripHTML(20);
@@ -359,7 +400,7 @@
         }
 
         function updateBalance() {
-            balanceEl.textContent = `BALANCE: ${balance}`;
+            balanceEl.textContent = `БАЛАНС: ${balance}`;
         }
 
         function showStatus(text, color='#fff') {
@@ -368,10 +409,10 @@
             statusEl.style.opacity = '1';
             setTimeout(() => {
                 statusEl.style.opacity = '0';
-            }, 2000);
+            }, 3000);
         }
 
-        // === МЕХАНИКА РЫЧАГА (DRAG DOWN) ===
+        // === РЫЧАГ ===
         let isDragging = false;
         let startY = 0;
 
@@ -385,6 +426,10 @@
 
         function onStart(e) {
             if(isSpinning) return;
+
+            // Инициализация аудио контекста по первому клику (требование браузеров)
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
             isDragging = true;
             startY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
             leverKnob.style.cursor = 'grabbing';
@@ -401,6 +446,11 @@
             if (angle < 0) angle = 0;
             if (angle > 130) angle = 130;
 
+            // Звук трещотки, если угол меняется
+            if (Math.floor(angle) % 10 === 0 && angle > 5) {
+                // playLeverSound(); // Можно включить, если хочется частого треска
+            }
+
             leverHandle.style.transform = `rotate(${angle}deg)`;
         }
 
@@ -413,6 +463,7 @@
             const dist = endY - startY;
 
             if (dist > 150) {
+                playLeverSound(); // Громкий звук при отпускании
                 startSpin();
             }
             resetLever();
@@ -427,10 +478,10 @@
         document.addEventListener('touchend', onEnd);
 
 
-        // === ЛОГИКА ИГРЫ ===
+        // === СПИН ===
         function startSpin() {
             if(balance < 50) {
-                showStatus("NO MONEY!", "red");
+                showStatus("НЕДОСТАТОЧНО СРЕДСТВ!", "red");
                 return;
             }
 
@@ -438,6 +489,9 @@
             balance -= 50;
             updateBalance();
             payline.style.display = 'none';
+            statusEl.style.opacity = '0';
+
+            playSpinSound(); // Звук вращения
 
             const finalSymbols = [];
             for(let i=0; i<3; i++) {
@@ -484,13 +538,15 @@
             let win = 0;
             if(s1 === s2 && s2 === s3) {
                 win = PAYOUTS[s1] || 100;
-                showStatus(`JACKPOT! +${win}`, '#00ff00');
+                showStatus(`ДЖЕКПОТ! +${win}`, '#00ff00');
                 payline.style.display = 'block';
+                playWinSound(win);
             } else if (s1 === s2 || s2 === s3 || s1 === s3) {
                  win = 20;
-                 showStatus(`SMALL WIN +${win}`, '#ffd700');
+                 showStatus(`ВЫИГРЫШ +${win}`, '#ffd700');
+                 playWinSound(win);
             } else {
-                showStatus("TRY AGAIN", "#ccc");
+                showStatus("ПОПРОБУЙ ЕЩЕ", "#ccc");
             }
 
             if(win > 0) {
