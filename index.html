@@ -6,7 +6,7 @@
     <title>Melstroy Slot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap');
 
         :root {
             --bg-dark: #051e3e;
@@ -16,7 +16,6 @@
             --gold-light: #fceabb;
             --gold-dark: #f8b500;
             --gold-shadow: #b06602;
-            --red-ball: #d92e2e;
         }
 
         body {
@@ -34,6 +33,7 @@
             user-select: none;
         }
 
+        /* ЗВЕЗДЫ И ФОН */
         .star {
             position: absolute;
             color: #ffd700;
@@ -47,6 +47,7 @@
             50% { opacity: 1; transform: scale(1.2); }
         }
 
+        /* ВЫВЕСКА */
         .neon-sign {
             font-size: 36px;
             color: #fff;
@@ -55,15 +56,12 @@
             margin-bottom: 20px;
             text-align: center;
             line-height: 1.1;
-            text-shadow:
-                0 0 5px #fff,
-                0 0 10px #fff,
-                0 0 20px var(--neon-pink),
-                0 0 40px var(--neon-pink);
+            text-shadow: 0 0 10px #fff, 0 0 20px var(--neon-pink), 0 0 40px var(--neon-pink);
             z-index: 2;
             position: relative;
         }
 
+        /* ИГРОВАЯ ОБЛАСТЬ */
         .machine-wrapper {
             position: relative;
             display: flex;
@@ -76,14 +74,11 @@
 
         .slot-machine {
             width: 340px;
-            height: 320px;
+            height: 380px; /* Увеличил высоту для кнопки статы */
             background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-light) 50%, var(--gold-dark) 100%);
             border-radius: 30px;
             padding: 15px;
-            box-shadow:
-                inset 0 0 20px rgba(255, 255, 255, 0.5),
-                0 20px 50px rgba(0,0,0,0.6),
-                0 0 0 5px var(--gold-shadow);
+            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.5), 0 20px 50px rgba(0,0,0,0.6), 0 0 0 5px var(--gold-shadow);
             position: relative;
             display: flex;
             flex-direction: column;
@@ -112,14 +107,6 @@
             position: relative;
         }
 
-        .glass-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%);
-            z-index: 10;
-            pointer-events: none;
-        }
-
         .payline {
             position: absolute;
             top: 50%;
@@ -133,19 +120,9 @@
             display: none;
         }
 
-        .reel {
-            flex: 1;
-            border-right: 2px solid #ccc;
-            position: relative;
-        }
+        .reel { flex: 1; border-right: 2px solid #ccc; position: relative; }
         .reel:last-child { border-right: none; }
-
-        .reel-strip {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-        }
+        .reel-strip { position: absolute; top: 0; left: 0; width: 100%; }
 
         .symbol {
             height: 80px;
@@ -154,9 +131,9 @@
             justify-content: center;
             font-size: 45px;
         }
-
         .blur { filter: blur(3px); }
 
+        /* ПАНЕЛЬ УПРАВЛЕНИЯ */
         .controls-panel {
             margin-top: 15px;
             width: 100%;
@@ -171,7 +148,8 @@
             border-radius: 10px;
             padding: 5px;
             color: #0f0;
-            font-size: 16px;
+            font-size: 18px;
+            font-weight: 900;
             text-align: center;
             text-transform: uppercase;
             box-shadow: 0 0 5px rgba(0, 255, 0, 0.2);
@@ -194,14 +172,11 @@
             flex: 1;
         }
 
-        .bet-label {
-            color: var(--gold-light);
-            font-size: 12px;
-            font-weight: bold;
-        }
+        .bet-label { color: var(--gold-light); font-size: 12px; font-weight: bold; }
 
+        /* Input type="text" для форматирования с запятыми */
         #betInput {
-            width: 70px;
+            width: 90px;
             background: #000;
             border: 1px solid var(--gold-light);
             color: #fff;
@@ -213,103 +188,114 @@
             font-size: 14px;
         }
 
-        .bet-buttons {
-            display: flex;
-            gap: 3px;
-        }
-
+        .bet-buttons { display: flex; gap: 3px; }
         .bet-btn {
             background: linear-gradient(to bottom, #fceabb, #f8b500);
             border: none;
             border-radius: 4px;
-            padding: 5px 8px;
+            padding: 6px 8px;
             font-size: 10px;
             font-weight: bold;
             color: #5a3e08;
             cursor: pointer;
-            box-shadow: 0 2px 2px rgba(0,0,0,0.3);
         }
         .bet-btn:active { transform: translateY(1px); }
 
-        .lever-container {
-            position: absolute;
-            right: -30px;
-            top: 50px;
-            width: 60px;
-            height: 200px;
-            z-index: 1;
-        }
-
-        .lever-handle {
-            position: absolute;
-            left: 10px;
-            top: 110px;
-            width: 20px;
-            height: 120px;
-            transform-origin: bottom center;
-            transform: rotate(0deg);
-        }
-
-        .lever-stick {
-            width: 15px;
-            height: 100%;
-            background: linear-gradient(90deg, #e6b853, #fff, #b58928);
+        /* КНОПКА СТАТИСТИКИ */
+        .stats-btn {
+            background: linear-gradient(to right, #2b5876, #4e4376);
+            border: 2px solid #fff;
+            color: #fff;
+            padding: 10px;
             border-radius: 10px;
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
         }
+        .stats-btn:active { transform: scale(0.95); }
 
-        .lever-stick::after {
-             content: '';
-             position: absolute;
-             bottom: -10px;
-             left: 50%;
-             transform: translateX(-50%);
-             width: 25px;
-             height: 25px;
-             background: #b58928;
-             border-radius: 50%;
-             box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
-        }
+        /* РЫЧАГ */
+        .lever-container { position: absolute; right: -30px; top: 50px; width: 60px; height: 200px; z-index: 1; }
+        .lever-handle { position: absolute; left: 10px; top: 110px; width: 20px; height: 120px; transform-origin: bottom center; transform: rotate(0deg); }
+        .lever-stick { width: 15px; height: 100%; background: linear-gradient(90deg, #e6b853, #fff, #b58928); border-radius: 10px; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); }
+        .lever-stick::after { content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); width: 25px; height: 25px; background: #b58928; border-radius: 50%; }
+        .lever-knob { width: 60px; height: 60px; background: radial-gradient(circle at 30% 30%, #ff5e5e, #d92e2e); border-radius: 50%; position: absolute; top: -30px; left: 50%; transform: translateX(-50%); cursor: grab; z-index: 10; }
 
-        .lever-knob {
-            width: 60px;
-            height: 60px;
-            background: radial-gradient(circle at 30% 30%, #ff5e5e, var(--red-ball));
-            border-radius: 50%;
-            position: absolute;
-            top: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.3), 5px 10px 15px rgba(0,0,0,0.4);
-            cursor: grab;
-            z-index: 10;
+        /* МОДАЛЬНОЕ ОКНО (СТАТИСТИКА) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
         }
-        .lever-knob:active { cursor: grabbing; }
+        .modal-content {
+            background: linear-gradient(135deg, #1e2a3a, #0d121b);
+            width: 90%;
+            max-width: 400px;
+            height: 80%;
+            border-radius: 20px;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        .modal-header {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .modal-title { color: #fff; font-size: 20px; text-transform: uppercase; }
+        .close-btn { position: absolute; top: 10px; right: 15px; color: #fff; font-size: 24px; cursor: pointer; }
+
+        /* Вкладки */
+        .tabs { display: flex; background: rgba(0,0,0,0.3); }
+        .tab { flex: 1; padding: 12px; text-align: center; color: #888; cursor: pointer; font-size: 14px; font-weight: bold; border-bottom: 2px solid transparent; }
+        .tab.active { color: var(--neon-blue); border-bottom: 2px solid var(--neon-blue); background: rgba(0, 242, 255, 0.05); }
+
+        /* Список лидеров */
+        .leaderboard-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .lb-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.05);
+            margin-bottom: 8px;
+            padding: 10px 15px;
+            border-radius: 10px;
+            color: #fff;
+        }
+        .lb-row.is-me {
+            border: 1px solid var(--gold-dark);
+            background: rgba(248, 181, 0, 0.15);
+        }
+        .lb-rank { width: 30px; font-size: 16px; color: #888; font-weight: bold; }
+        .lb-rank.top-1 { color: #ffd700; }
+        .lb-rank.top-2 { color: #c0c0c0; }
+        .lb-rank.top-3 { color: #cd7f32; }
+
+        .lb-name { flex: 1; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 10px; }
+        .lb-score { font-family: 'Montserrat', monospace; color: var(--neon-blue); font-weight: bold; font-size: 14px; }
+        .lb-score.gold { color: #ffd700; }
 
         #status {
-            position: fixed;
-            bottom: 20px;
-            font-size: 20px;
-            color: #fff;
-            text-shadow: 0 2px 4px #000;
-            z-index: 10;
-            background: rgba(0,0,0,0.8);
-            padding: 10px 20px;
-            border-radius: 20px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            text-align: center;
+            position: fixed; bottom: 20px; font-size: 20px; color: #fff; text-shadow: 0 2px 4px #000;
+            z-index: 10; background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 20px; opacity: 0; transition: opacity 0.3s; text-align: center;
         }
-
-        @media (max-width: 450px) {
-            .machine-wrapper { transform: scale(0.9); }
-            .neon-sign { font-size: 30px; }
-        }
-
+        @media (max-width: 450px) { .machine-wrapper { transform: scale(0.9); } .neon-sign { font-size: 30px; } }
     </style>
 </head>
 <body>
@@ -317,7 +303,6 @@
     <div class="star" style="top: 10%; left: 10%;">★</div>
     <div class="star" style="top: 20%; right: 15%; animation-delay: 1s;">★</div>
     <div class="star" style="top: 80%; left: 20%; animation-delay: 0.5s;">★</div>
-    <div class="star" style="top: 70%; right: 10%; animation-delay: 1.5s;">★</div>
 
     <div class="neon-sign">MELSTROY<br>SLOT</div>
 
@@ -337,10 +322,12 @@
                 <div class="balance-box">
                     БАЛАНС: <span id="balance">...</span>
                 </div>
+
+                <!-- Ставка с запятыми -->
                 <div class="bet-controls">
                     <div class="bet-input-wrapper">
                         <span class="bet-label">СТАВКА:</span>
-                        <input type="number" id="betInput" value="50" min="10" step="10">
+                        <input type="text" id="betInput" inputmode="numeric" value="50">
                     </div>
                     <div class="bet-buttons">
                         <button class="bet-btn" onclick="adjustBet('min')">MIN</button>
@@ -349,6 +336,11 @@
                         <button class="bet-btn" onclick="adjustBet('max')">MAX</button>
                     </div>
                 </div>
+
+                <!-- Кнопка статистики -->
+                <button class="stats-btn" onclick="openStats()">
+                    🏆 ТОП ИГРОКОВ
+                </button>
             </div>
         </div>
 
@@ -362,124 +354,165 @@
 
     <div id="status">ЗАГРУЗКА...</div>
 
+    <!-- МОДАЛЬНОЕ ОКНО -->
+    <div class="modal-overlay" id="statsModal">
+        <div class="modal-content">
+            <div class="close-btn" onclick="closeStats()">&times;</div>
+            <div class="modal-header">
+                <div class="modal-title">Зал Славы</div>
+            </div>
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('balance')" id="tabBalance">💰 Богачи</div>
+                <div class="tab" onclick="switchTab('wins')" id="tabWins">🎰 Заносы</div>
+            </div>
+            <div class="leaderboard-list" id="lbList">
+                <!-- Сюда JS вставит строки -->
+            </div>
+        </div>
+    </div>
+
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
         const SYMBOLS = ['💎', '7️⃣', '🔔', '🍒', '🍋', '💰'];
         const SYMBOL_HEIGHT = 80;
+        const MULTIPLIERS = { '💎': 20, '7️⃣': 10, '💰': 6, '🔔': 3, '🍋': 1.5, '🍒': 0.5 };
 
-        const MULTIPLIERS = {
-            '💎': 20,
-            '7️⃣': 10,
-            '💰': 6,
-            '🔔': 3,
-            '🍋': 1.5,
-            '🍒': 0.5
-        };
-
-        const reels = [
-            document.getElementById('reel1'),
-            document.getElementById('reel2'),
-            document.getElementById('reel3')
-        ];
+        const reels = [ document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3') ];
         const balanceEl = document.getElementById('balance');
         const betInput = document.getElementById('betInput');
         const statusEl = document.getElementById('status');
         const payline = document.querySelector('.payline');
         const leverHandle = document.getElementById('leverHandle');
         const leverKnob = document.getElementById('leverKnob');
+        const lbList = document.getElementById('lbList');
 
         let balance = 1000;
+        let maxWin = 0; // Для статистики
         let isSpinning = false;
+        let currentTab = 'balance';
 
-        // --- AUDIO ---
+        // Аудио контекст
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
         let spinInterval = null;
         let noiseBuffer = null;
 
-        function createNoiseBuffer() {
-            if(noiseBuffer) return;
-            const bufferSize = audioCtx.sampleRate;
-            noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const output = noiseBuffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                output[i] = Math.random() * 2 - 1;
+        // --- ФУНКЦИИ ФОРМАТИРОВАНИЯ ---
+        // 12345 -> "12,345"
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // "12,345" -> 12345
+        function parseNumber(str) {
+            return parseInt(str.replace(/,/g, '')) || 0;
+        }
+
+        // --- УПРАВЛЕНИЕ СТАВКОЙ ---
+        betInput.addEventListener('input', function(e) {
+            // Удаляем всё кроме цифр
+            let rawValue = this.value.replace(/\D/g, '');
+            if (rawValue === '') rawValue = '0';
+
+            // Ограничение по балансу "на лету" (опционально)
+            let numValue = parseInt(rawValue);
+            // Если нужно, чтобы нельзя было ввести больше баланса сразу:
+            // if (numValue > balance && balance > 0) numValue = balance;
+
+            // Форматируем обратно с запятыми
+            this.value = formatNumber(numValue);
+        });
+
+        betInput.addEventListener('change', function() {
+            let val = parseNumber(this.value);
+            if(val < 10) val = 10;
+            if(val > balance) val = balance;
+            this.value = formatNumber(val);
+        });
+
+        function adjustBet(action) {
+            let currentBet = parseNumber(betInput.value) || 10;
+            if(action === 'min') currentBet = 10;
+            if(action === 'max') currentBet = balance > 0 ? balance : 10;
+            if(action === 'double') currentBet *= 2;
+            if(action === 'half') currentBet = Math.floor(currentBet / 2);
+
+            if(currentBet < 10) currentBet = 10;
+            if(currentBet > balance && balance > 0) currentBet = balance;
+
+            betInput.value = formatNumber(currentBet);
+        }
+
+        // --- СТАТИСТИКА И ЛИДЕРБОРДЫ ---
+        // Фейковые данные для симуляции онлайна
+        const FAKE_USERS = [
+            { name: "Melstroy", balance: 50000000, maxWin: 12000000 },
+            { name: "Pavel Durov", balance: 10000000, maxWin: 500000 },
+            { name: "Elon Musk", balance: 8000000, maxWin: 250000 },
+            { name: "Buster", balance: 2500000, maxWin: 150000 },
+            { name: "Evelone", balance: 1200000, maxWin: 80000 },
+            { name: "Stroi Batya", balance: 500000, maxWin: 25000 },
+            { name: "Casino King", balance: 300000, maxWin: 12000 },
+            { name: "Lucky Guy", balance: 150000, maxWin: 500000 },
+            { name: "Bot_3000", balance: 50000, maxWin: 2000 }
+        ];
+
+        function openStats() {
+            document.getElementById('statsModal').style.display = 'flex';
+            renderLeaderboard();
+        }
+
+        function closeStats() {
+            document.getElementById('statsModal').style.display = 'none';
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('tabBalance').classList.toggle('active', tab === 'balance');
+            document.getElementById('tabWins').classList.toggle('active', tab === 'wins');
+            renderLeaderboard();
+        }
+
+        function renderLeaderboard() {
+            // Создаем копию списка и добавляем ТЕКУЩЕГО пользователя
+            let list = [...FAKE_USERS];
+            let me = {
+                name: (tg.initDataUnsafe?.user?.first_name || "ТЫ (YOU)"),
+                balance: balance,
+                maxWin: maxWin
+            };
+            list.push(me);
+
+            // Сортировка
+            if (currentTab === 'balance') {
+                list.sort((a, b) => b.balance - a.balance);
+            } else {
+                list.sort((a, b) => b.maxWin - a.maxWin);
             }
-        }
-        function playFilteredNoise(filterFreq, duration, vol) {
-            if (!audioCtx) return;
-            createNoiseBuffer();
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = noiseBuffer;
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'bandpass';
-            filter.frequency.value = filterFreq;
-            filter.Q.value = 5;
-            const gain = audioCtx.createGain();
-            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-            noise.connect(filter);
-            filter.connect(gain);
-            gain.connect(audioCtx.destination);
-            noise.start();
-        }
-        function playTone(freq, type, duration, vol = 0.1) {
-            if (!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
-        }
-        function playRatchetSound() {
-            const freq = 2000 + Math.random() * 500;
-            playFilteredNoise(freq, 0.05, 0.3);
-        }
-        function playLeverClunk() {
-            playTone(60, 'triangle', 0.2, 0.4);
-            playFilteredNoise(800, 0.1, 0.3);
-        }
-        function startSpinSound() {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            if(spinInterval) clearInterval(spinInterval);
-            let note = 0;
-            const baseFreq = 400;
-            spinInterval = setInterval(() => {
-                const freq = baseFreq + (note % 3) * 100 + Math.random() * 50;
-                playTone(freq, 'square', 0.08, 0.05);
-                note++;
-            }, 80);
-        }
-        function stopSpinSound() {
-            if(spinInterval) clearInterval(spinInterval);
-            playTone(800, 'sine', 0.2, 0.1);
-        }
-        function playWinSound(amount) {
-            const notes = [523.25, 659.25, 783.99, 1046.50];
-            notes.forEach((note, i) => {
-                setTimeout(() => playTone(note, 'sine', 0.4, 0.1), i * 150);
+
+            // Рендер
+            let html = '';
+            list.forEach((user, index) => {
+                let isMe = user === me;
+                let rankClass = index === 0 ? 'top-1' : (index === 1 ? 'top-2' : (index === 2 ? 'top-3' : ''));
+                let score = currentTab === 'balance' ? user.balance : user.maxWin;
+                let scoreClass = currentTab === 'balance' ? 'lb-score gold' : 'lb-score';
+
+                html += `
+                    <div class="lb-row ${isMe ? 'is-me' : ''}">
+                        <div class="lb-rank ${rankClass}">#${index + 1}</div>
+                        <div class="lb-name">${user.name}</div>
+                        <div class="${scoreClass}">${formatNumber(score)}</div>
+                    </div>
+                `;
             });
-            if (amount >= 100) {
-                for(let k=0; k<10; k++) {
-                    setTimeout(() => playFilteredNoise(2000 + Math.random()*1000, 0.05, 0.1), 600 + k*60);
-                }
-            }
+            lbList.innerHTML = html;
         }
 
-        // --- FORMATTING FUNCTION ---
-        // Форматирует число с разделителями (1,000,000)
-        function formatMoney(amount) {
-            return amount.toLocaleString('en-US');
-        }
 
-        // --- STORAGE ---
+        // --- ИНИЦИАЛИЗАЦИЯ ---
         function init() {
             createNoiseBuffer();
             reels.forEach(reel => {
@@ -488,27 +521,28 @@
             });
 
             if (tg.CloudStorage) {
+                // Загружаем баланс
                 tg.CloudStorage.getItem('melstroy_balance', (error, value) => {
-                    if (!error && value) {
-                        setBalance(parseInt(value));
-                    } else {
-                        loadFromLocal();
-                    }
-                    showStatus("ТЯНИ РЫЧАГ!", "#fff");
+                    if (!error && value) setBalance(parseInt(value));
+                    else loadFromLocal();
+                });
+                // Загружаем рекорд
+                tg.CloudStorage.getItem('melstroy_maxwin', (error, value) => {
+                    if (!error && value) maxWin = parseInt(value);
                 });
             } else {
                 loadFromLocal();
-                showStatus("ТЯНИ РЫЧАГ!", "#fff");
             }
+            showStatus("ТЯНИ РЫЧАГ!", "#fff");
         }
 
         function loadFromLocal() {
             const localBal = localStorage.getItem('melstroy_balance');
-            if (localBal) {
-                setBalance(parseInt(localBal));
-            } else {
-                setBalance(1000);
-            }
+            if (localBal) setBalance(parseInt(localBal));
+            else setBalance(1000);
+
+            const localMax = localStorage.getItem('melstroy_maxwin');
+            if(localMax) maxWin = parseInt(localMax);
         }
 
         function setBalance(val) {
@@ -517,210 +551,160 @@
             updateUI();
         }
 
-        function saveBalance() {
+        function saveProgress() {
             localStorage.setItem('melstroy_balance', balance);
+            localStorage.setItem('melstroy_maxwin', maxWin);
             if (tg.CloudStorage) {
-                tg.CloudStorage.setItem('melstroy_balance', balance.toString(), (err, stored) => {
-                    if(err) console.error("Cloud Error", err);
-                });
+                tg.CloudStorage.setItem('melstroy_balance', balance.toString());
+                tg.CloudStorage.setItem('melstroy_maxwin', maxWin.toString());
             }
         }
 
         function updateUI() {
-            // Используем форматирование
-            balanceEl.textContent = formatMoney(balance);
+            balanceEl.textContent = formatNumber(balance);
         }
 
-        function adjustBet(action) {
-            let currentBet = parseInt(betInput.value) || 10;
-            if(action === 'min') currentBet = 10;
-            if(action === 'max') currentBet = balance > 0 ? balance : 10;
-            if(action === 'double') currentBet *= 2;
-            if(action === 'half') currentBet = Math.floor(currentBet / 2);
-            if(currentBet < 10) currentBet = 10;
-            if(currentBet > balance && balance > 0) currentBet = balance;
-            betInput.value = currentBet;
+        // --- AUDIO HELPERS ---
+        function createNoiseBuffer() {
+            if(noiseBuffer) return;
+            const bufferSize = audioCtx.sampleRate;
+            noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+        }
+        function playFilteredNoise(filterFreq, duration, vol) {
+            if (!audioCtx) return;
+            createNoiseBuffer();
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = noiseBuffer;
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass'; filter.frequency.value = filterFreq; filter.Q.value = 5;
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+            noise.start();
+        }
+        function playTone(freq, type, duration, vol = 0.1) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        }
+        function playRatchetSound() { playFilteredNoise(2000 + Math.random() * 500, 0.05, 0.3); }
+        function playLeverClunk() { playTone(60, 'triangle', 0.2, 0.4); playFilteredNoise(800, 0.1, 0.3); }
+        function startSpinSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if(spinInterval) clearInterval(spinInterval);
+            let note = 0;
+            spinInterval = setInterval(() => {
+                playTone(400 + (note % 3) * 100 + Math.random() * 50, 'square', 0.08, 0.05); note++;
+            }, 80);
+        }
+        function stopSpinSound() { if(spinInterval) clearInterval(spinInterval); playTone(800, 'sine', 0.2, 0.1); }
+        function playWinSound(amount) {
+            [523.25, 659.25, 783.99, 1046.50].forEach((n, i) => setTimeout(() => playTone(n, 'sine', 0.4, 0.1), i * 150));
+            if (amount >= 100) for(let k=0; k<10; k++) setTimeout(() => playFilteredNoise(2000+Math.random()*1000, 0.05, 0.1), 600+k*60);
         }
 
-        betInput.addEventListener('change', () => {
-            let val = parseInt(betInput.value);
-            if(isNaN(val) || val < 10) betInput.value = 10;
-            if(val > balance) betInput.value = balance;
-        });
-
+        // --- GAME LOGIC ---
         function generateStripHTML(count) {
             let html = '';
-            for(let i=0; i<count; i++) {
-                const sym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-                html += `<div class="symbol">${sym}</div>`;
-            }
+            for(let i=0; i<count; i++) html += `<div class="symbol">${SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]}</div>`;
             return html;
         }
-
         function setReelPosition(reel, index) {
-            const y = -(index * SYMBOL_HEIGHT) + 40;
-            reel.style.transform = `translateY(${y}px)`;
+            reel.style.transform = `translateY(${-(index * SYMBOL_HEIGHT) + 40}px)`;
         }
-
         function showStatus(text, color='#fff') {
-            statusEl.textContent = text;
-            statusEl.style.color = color;
-            statusEl.style.opacity = '1';
-            setTimeout(() => {
-                if(!isSpinning) statusEl.style.opacity = '0';
-            }, 3000);
+            statusEl.textContent = text; statusEl.style.color = color; statusEl.style.opacity = '1';
+            setTimeout(() => { if(!isSpinning) statusEl.style.opacity = '0'; }, 3000);
         }
 
-        let isDragging = false;
-        let startY = 0;
-        let lastSoundAngle = 0;
-
-        function resetLever() {
-            leverHandle.style.transition = 'transform 0.3s cubic-bezier(0.5, 1.5, 0.5, 1)';
-            leverHandle.style.transform = 'rotate(0deg)';
-            setTimeout(() => {
-                leverHandle.style.transition = '';
-            }, 300);
-        }
-
+        // Lever
+        let isDragging = false, startY = 0, lastSoundAngle = 0;
+        function resetLever() { leverHandle.style.transition = 'transform 0.3s cubic-bezier(0.5, 1.5, 0.5, 1)'; leverHandle.style.transform = 'rotate(0deg)'; setTimeout(() => leverHandle.style.transition = '', 300); }
         function onStart(e) {
             if(isSpinning) return;
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            isDragging = true;
-            startY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-            leverKnob.style.cursor = 'grabbing';
-            lastSoundAngle = 0;
+            isDragging = true; startY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            leverKnob.style.cursor = 'grabbing'; lastSoundAngle = 0;
         }
-
         function onMove(e) {
             if(!isDragging) return;
             e.preventDefault();
             const currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
             const deltaY = currentY - startY;
-            let angle = deltaY * 0.5;
-            if (angle < 0) angle = 0;
-            if (angle > 130) angle = 130;
-
-            if (Math.abs(angle - lastSoundAngle) > 15) {
-                playRatchetSound();
-                lastSoundAngle = angle;
-            }
+            let angle = Math.min(Math.max(deltaY * 0.5, 0), 130);
+            if (Math.abs(angle - lastSoundAngle) > 15) { playRatchetSound(); lastSoundAngle = angle; }
             leverHandle.style.transform = `rotate(${angle}deg)`;
         }
-
         function onEnd(e) {
             if(!isDragging) return;
-            isDragging = false;
-            leverKnob.style.cursor = 'grab';
+            isDragging = false; leverKnob.style.cursor = 'grab';
             const endY = e.type.includes('touch') ? e.changedTouches[0].clientY : e.clientY;
-            const dist = endY - startY;
-
-            if (dist > 150) {
-                playLeverClunk();
-                setTimeout(() => startSpin(), 250);
-            }
+            if (endY - startY > 150) { playLeverClunk(); setTimeout(startSpin, 250); }
             resetLever();
         }
 
-        leverKnob.addEventListener('mousedown', onStart);
-        document.addEventListener('mousemove', onMove);
-        document.addEventListener('mouseup', onEnd);
-        leverKnob.addEventListener('touchstart', onStart, {passive: false});
-        document.addEventListener('touchmove', onMove, {passive: false});
-        document.addEventListener('touchend', onEnd);
-
+        leverKnob.addEventListener('mousedown', onStart); document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onEnd);
+        leverKnob.addEventListener('touchstart', onStart, {passive: false}); document.addEventListener('touchmove', onMove, {passive: false}); document.addEventListener('touchend', onEnd);
 
         function startSpin() {
-            const betAmount = parseInt(betInput.value);
+            const betAmount = parseNumber(betInput.value);
 
-            if(balance < betAmount) {
-                showStatus("НЕДОСТАТОЧНО СРЕДСТВ!", "red");
-                return;
-            }
-
-            isSpinning = true;
-            balance -= betAmount;
-            saveBalance();
-            updateUI();
-            payline.style.display = 'none';
-            statusEl.style.opacity = '0';
-
+            if(balance < betAmount) { showStatus("НЕДОСТАТОЧНО СРЕДСТВ!", "red"); return; }
+            isSpinning = true; balance -= betAmount; saveProgress(); updateUI(); payline.style.display = 'none'; statusEl.style.opacity = '0';
             startSpinSound();
 
             let finalSymbols = [];
-            const luckyChance = Math.random();
-
-            if (luckyChance < 0.35) {
+            if (Math.random() < 0.35) {
                 const sym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-                finalSymbols = [sym, sym, SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]];
-                if(Math.random() > 0.5) finalSymbols = [sym, SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)], sym];
+                finalSymbols = Math.random() > 0.5 ? [sym, sym, SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]] : [sym, SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)], sym];
             } else {
-                for(let i=0; i<3; i++) {
-                    finalSymbols.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
-                }
+                for(let i=0; i<3; i++) finalSymbols.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
             }
 
             reels.forEach((reel, i) => {
-                const extraCount = 20 + i * 5;
-                const winSymbolIndex = extraCount - 2;
-
+                const winIndex = 18;
                 let stripArr = [];
-                for(let k=0; k<extraCount; k++) {
-                    stripArr.push(SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]);
-                }
-                stripArr[winSymbolIndex] = finalSymbols[i];
-
+                for(let k=0; k<20; k++) stripArr.push(SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]);
+                stripArr[winIndex] = finalSymbols[i];
                 reel.innerHTML = stripArr.map(s => `<div class="symbol ${Math.random()>0.5?'blur':''}">${s}</div>`).join('');
+                reel.children[winIndex].classList.remove('blur');
 
-                const targetDiv = reel.children[winSymbolIndex];
-                targetDiv.classList.remove('blur');
-                targetDiv.id = `res-${i}`;
-
-                reel.style.transition = 'none';
-                reel.style.transform = `translateY(0px)`;
-
-                reel.offsetHeight;
-
-                const targetY = -(winSymbolIndex * SYMBOL_HEIGHT) + 40;
-                const time = 2 + i * 0.5;
-                reel.style.transition = `transform ${time}s cubic-bezier(0.15, 0.1, 0.25, 1)`;
-                reel.style.transform = `translateY(${targetY}px)`;
+                reel.style.transition = 'none'; reel.style.transform = `translateY(0px)`; reel.offsetHeight;
+                reel.style.transition = `transform ${2 + i * 0.5}s cubic-bezier(0.15, 0.1, 0.25, 1)`;
+                reel.style.transform = `translateY(${-(winIndex * SYMBOL_HEIGHT) + 40}px)`;
             });
 
-            setTimeout(() => {
-                stopSpinSound();
-                checkWin(finalSymbols, betAmount);
-                isSpinning = false;
-            }, 3500);
+            setTimeout(() => { stopSpinSound(); checkWin(finalSymbols, betAmount); isSpinning = false; }, 3500);
         }
 
         function checkWin(results, bet) {
             const [s1, s2, s3] = results;
             document.querySelectorAll('.symbol').forEach(el => el.classList.remove('blur'));
-
             let multiplier = 0;
-
             if(s1 === s2 && s2 === s3) {
-                multiplier = MULTIPLIERS[s1];
-                showStatus(`ДЖЕКПОТ! x${multiplier}`, '#00ff00');
-                payline.style.display = 'block';
+                multiplier = MULTIPLIERS[s1]; showStatus(`ДЖЕКПОТ! x${multiplier}`, '#00ff00'); payline.style.display = 'block';
             } else if (s1 === s2 || s2 === s3 || s1 === s3) {
-                 const pairSym = (s1 === s2) ? s1 : (s2 === s3 ? s2 : s1);
-                 multiplier = Math.max(1, MULTIPLIERS[pairSym] * 0.5);
-                 showStatus(`ВЫИГРЫШ! x${multiplier}`, '#ffd700');
+                 const pair = (s1===s2)?s1:(s2===s3?s2:s1); multiplier = Math.max(1, MULTIPLIERS[pair] * 0.5); showStatus(`ВЫИГРЫШ! x${multiplier}`, '#ffd700');
             }
 
             if(multiplier > 0) {
-                const winAmount = Math.floor(bet * multiplier);
-                balance += winAmount;
-                saveBalance();
-                playWinSound(winAmount);
-                // Форматируем выигрыш
-                setTimeout(() => showStatus(`+${formatMoney(winAmount)}`, '#fff'), 1000);
+                const win = Math.floor(bet * multiplier);
+                balance += win;
+                if(win > maxWin) maxWin = win; // Обновляем рекорд
+                saveProgress();
+                playWinSound(win);
+                setTimeout(() => showStatus(`+${formatNumber(win)}`, '#fff'), 1000);
             } else {
                 showStatus("ПОПРОБУЙ ЕЩЕ", "#ccc");
             }
-
             updateUI();
         }
 
