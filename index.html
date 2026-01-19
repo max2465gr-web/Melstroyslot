@@ -241,75 +241,90 @@
         const leverKnob = document.getElementById('leverKnob');
         const lbList = document.getElementById('lbList');
 
-        // Данные пользователя
-        let userId = null; // Получаем из URL
         let balance = 1000;
         let maxWin = 0;
         let isSpinning = false;
         let currentTab = 'balance';
+        let userId = null;
 
-        // Аудио
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
         let spinInterval = null, noiseBuffer = null;
 
-        // === СЕТЕВАЯ ЧАСТЬ ===
+        // === ГЛАВНАЯ ФУНКЦИЯ СОХРАНЕНИЯ ===
+        async function saveProgress() {
+            // 1. Сначала сохраняем ЛОКАЛЬНО (надежно)
+            localStorage.setItem('melstroy_balance', balance);
+            localStorage.setItem('melstroy_maxwin', maxWin);
 
-        async function init() {
-            // Аудио
+            // 2. Затем в Telegram Cloud (если доступно)
+            if(tg.CloudStorage) {
+                tg.CloudStorage.setItem('melstroy_balance', balance.toString());
+                tg.CloudStorage.setItem('melstroy_maxwin', maxWin.toString());
+            }
+
+            // 3. Пытаемся отправить на сервер (для рейтинга)
+            // Используем 'no-await', чтобы ошибка сервера не ломала игру
+            if(userId) {
+                fetch('/api/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid: userId, balance: balance, max_win: maxWin })
+                }).catch(e => console.log('Server save failed, using local'));
+            }
+        }
+
+        // === ЗАГРУЗКА ===
+        function init() {
             createNoiseBuffer();
-
-            // Графика
             reels.forEach(reel => {
                 reel.innerHTML = generateStripHTML(20);
                 setReelPosition(reel, 10);
             });
 
-            // 1. Парсим ID пользователя из URL (передан ботом)
+            // 1. Пробуем загрузить LocalStorage (мгновенно)
+            const localBal = localStorage.getItem('melstroy_balance');
+            const localMax = localStorage.getItem('melstroy_maxwin');
+
+            if(localBal) balance = parseInt(localBal);
+            if(localMax) maxWin = parseInt(localMax);
+
+            // 2. Смотрим URL (если бот передал данные)
             const urlParams = new URLSearchParams(window.location.search);
             userId = urlParams.get('uid');
-            const startBal = urlParams.get('bal');
+            const urlBal = urlParams.get('bal');
 
-            if(startBal && !isNaN(startBal)) balance = parseInt(startBal);
+            // Если сервер прислал баланс, он приоритетнее локального (синхронизация)
+            if(urlBal && !isNaN(urlBal)) {
+                balance = parseInt(urlBal);
+                saveProgress(); // Обновим локальный кэш
+            }
 
-            // Если зашли просто так (без бота), ставим дефолт
-            if(!userId) console.warn("Запущен без UID. Статистика не сохранится.");
+            // Если баланс < 10 (банкрот), даем бонус
+            if(balance < 10) {
+                balance = 1000;
+                saveProgress();
+            }
 
             updateUI();
             showStatus("ТЯНИ РЫЧАГ!", "#fff");
         }
 
-        async function saveProgress() {
-            if(!userId) return; // Не сохраняем, если нет ID
-
-            try {
-                // Отправляем данные на наш Python сервер
-                await fetch('/api/save', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        uid: userId,
-                        balance: balance,
-                        max_win: maxWin
-                    })
-                });
-            } catch(e) {
-                console.error("Ошибка сохранения:", e);
-            }
-        }
+        // --- ОСТАЛЬНОЙ КОД БЕЗ ИЗМЕНЕНИЙ ---
 
         async function fetchLeaderboard() {
             try {
                 const response = await fetch('/api/leaderboard');
-                const data = await response.json();
-                return data;
+                if(!response.ok) throw new Error("Server error");
+                return await response.json();
             } catch(e) {
-                console.error("Ошибка загрузки топа:", e);
-                return { balance: [], wins: [] };
+                // Фейк данные, если сервер недоступен
+                return {
+                    balance: [{name: "Melstroy", val: 50000000}, {name: "You (Offline)", val: balance}],
+                    wins: [{name: "Melstroy", val: 12000000}, {name: "You (Offline)", val: maxWin}]
+                };
             }
         }
-
-        // === ИНТЕРФЕЙС ===
 
         function formatNumber(num) {
             return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -318,7 +333,6 @@
             return parseInt(str.replace(/,/g, '')) || 0;
         }
 
-        // Ввод ставки
         betInput.addEventListener('input', function() {
             let raw = this.value.replace(/\D/g, ''); if(raw === '') raw = '0';
             this.value = formatNumber(parseInt(raw));
@@ -338,16 +352,12 @@
             betInput.value = formatNumber(cur);
         }
 
-        // Статистика
         async function openStats() {
             document.getElementById('statsModal').style.display = 'flex';
             lbList.innerHTML = '<div style="color:#fff;text-align:center;">Загрузка...</div>';
-
             const data = await fetchLeaderboard();
-            renderLeaderboard(data);
-
-            // Сохраним данные для переключения вкладок
             window.lbData = data;
+            renderLeaderboard(data);
         }
         function closeStats() { document.getElementById('statsModal').style.display = 'none'; }
 
@@ -361,21 +371,12 @@
         function renderLeaderboard(data) {
             const list = currentTab === 'balance' ? data.balance : data.wins;
             let html = '';
-
-            if(list.length === 0) {
-                html = '<div style="text-align:center;color:#888;padding:20px;">Пока пусто...</div>';
-            } else {
+            if(list.length === 0) html = '<div style="text-align:center;color:#888;">Пусто...</div>';
+            else {
                 list.forEach((user, index) => {
                     let rankClass = index === 0 ? 'top-1' : (index === 1 ? 'top-2' : (index === 2 ? 'top-3' : ''));
                     let scoreClass = currentTab === 'balance' ? 'lb-score gold' : 'lb-score';
-
-                    html += `
-                        <div class="lb-row">
-                            <div class="lb-rank ${rankClass}">#${index + 1}</div>
-                            <div class="lb-name">${user.name}</div>
-                            <div class="${scoreClass}">${formatNumber(user.val)}</div>
-                        </div>
-                    `;
+                    html += `<div class="lb-row"><div class="lb-rank ${rankClass}">#${index + 1}</div><div class="lb-name">${user.name}</div><div class="${scoreClass}">${formatNumber(user.val)}</div></div>`;
                 });
             }
             lbList.innerHTML = html;
@@ -384,10 +385,6 @@
         function updateUI() {
             balanceEl.textContent = formatNumber(balance);
         }
-
-        // === GAME MECHANICS & AUDIO (Standard) ===
-        // ... (Код аудио и анимации остается прежним для экономии места, но он ТУТ ДОЛЖЕН БЫТЬ) ...
-        // Я включу сокращенную версию для функциональности
 
         function createNoiseBuffer() {
             if(noiseBuffer) return;
@@ -408,7 +405,6 @@
         }
         function stopSound() { clearInterval(spinInterval); playTone(800,'sine',0.2,0.1); }
 
-        // Logic
         function generateStripHTML(c) { let h=''; for(let i=0;i<c;i++) h+=`<div class="symbol">${SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]}</div>`; return h; }
         function setReelPosition(r, i) { r.style.transform = `translateY(${-(i*SYMBOL_HEIGHT)+40}px)`; }
         function showStatus(t,c='#fff') { statusEl.textContent=t; statusEl.style.color=c; statusEl.style.opacity='1'; setTimeout(()=>{if(!isSpinning)statusEl.style.opacity='0';},3000); }
@@ -420,7 +416,6 @@
         document.addEventListener('mousemove', e=>{ if(!isDrag)return; let a=Math.min(Math.max((e.clientY-startY)*0.5,0),130); if(Math.abs(a-lastAng)>15){playRatchet();lastAng=a;} leverHandle.style.transform=`rotate(${a}deg)`; });
         document.addEventListener('mouseup', e=>{ if(!isDrag)return; isDrag=false; if(e.clientY-startY>150){playClunk();setTimeout(spin,250);} resetLev(); });
 
-        // Touch events duplication... (omitted for brevity but implied)
         leverKnob.addEventListener('touchstart', e=>{if(isSpinning)return; isDrag=true; startY=e.touches[0].clientY;}, {passive:false});
         document.addEventListener('touchmove', e=>{if(!isDrag)return; e.preventDefault(); let a=Math.min(Math.max((e.touches[0].clientY-startY)*0.5,0),130); if(Math.abs(a-lastAng)>15){playRatchet();lastAng=a;} leverHandle.style.transform=`rotate(${a}deg)`;}, {passive:false});
         document.addEventListener('touchend', e=>{if(!isDrag)return; isDrag=false; if(e.changedTouches[0].clientY-startY>150){playClunk();setTimeout(spin,250);} resetLev();});
@@ -465,6 +460,8 @@
                 balance += win;
                 if(win > maxWin) maxWin = win;
                 saveProgress();
+                // Звук и статус
+                [523,659,783].forEach((n,i)=>setTimeout(()=>playTone(n,'sine',0.4),i*150));
                 setTimeout(()=>showStatus(`+${formatNumber(win)}`, '#fff'), 1000);
             } else { showStatus("ПОПРОБУЙ ЕЩЕ", "#ccc"); }
             updateUI();
