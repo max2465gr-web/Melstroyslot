@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Melstroy Slot</title>
-    <!-- Подключаем скрипт Telegram WebApp -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap');
@@ -364,9 +363,8 @@
     <div id="status">ЗАГРУЗКА...</div>
 
     <script>
-        // === Инициализация Telegram WebApp ===
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Развернуть на весь экран
+        tg.expand();
 
         const SYMBOLS = ['💎', '7️⃣', '🔔', '🍒', '🍋', '💰'];
         const SYMBOL_HEIGHT = 80;
@@ -392,16 +390,15 @@
         const leverHandle = document.getElementById('leverHandle');
         const leverKnob = document.getElementById('leverKnob');
 
-        let balance = 1000; // Дефолтное значение
+        let balance = 1000;
         let isSpinning = false;
 
-        // === АУДИО ===
+        // --- AUDIO ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
         let spinInterval = null;
         let noiseBuffer = null;
 
-        // ... (Функции аудио те же самые) ...
         function createNoiseBuffer() {
             if(noiseBuffer) return;
             const bufferSize = audioCtx.sampleRate;
@@ -476,9 +473,13 @@
             }
         }
 
-        // === СИСТЕМА СОХРАНЕНИЯ ===
+        // --- FORMATTING FUNCTION ---
+        // Форматирует число с разделителями (1,000,000)
+        function formatMoney(amount) {
+            return amount.toLocaleString('en-US');
+        }
 
-        // 1. Загрузка данных (Cloud -> Local -> Default)
+        // --- STORAGE ---
         function init() {
             createNoiseBuffer();
             reels.forEach(reel => {
@@ -486,19 +487,16 @@
                 setReelPosition(reel, 10);
             });
 
-            // Пытаемся получить данные из CloudStorage (Асинхронно)
             if (tg.CloudStorage) {
                 tg.CloudStorage.getItem('melstroy_balance', (error, value) => {
                     if (!error && value) {
                         setBalance(parseInt(value));
                     } else {
-                        // Если в облаке нет, пробуем LocalStorage
                         loadFromLocal();
                     }
                     showStatus("ТЯНИ РЫЧАГ!", "#fff");
                 });
             } else {
-                // Если старая версия Telegram или браузер
                 loadFromLocal();
                 showStatus("ТЯНИ РЫЧАГ!", "#fff");
             }
@@ -509,22 +507,18 @@
             if (localBal) {
                 setBalance(parseInt(localBal));
             } else {
-                setBalance(1000); // Стартовый баланс
+                setBalance(1000);
             }
         }
 
         function setBalance(val) {
-            if (isNaN(val) || val < 10) val = 1000; // Защита от банкротства
+            if (isNaN(val) || val < 10) val = 1000;
             balance = val;
             updateUI();
         }
 
-        // 2. Сохранение данных (Cloud + Local)
         function saveBalance() {
-            // Сохраняем в LocalStorage (быстро)
             localStorage.setItem('melstroy_balance', balance);
-
-            // Сохраняем в Telegram CloudStorage (надежно)
             if (tg.CloudStorage) {
                 tg.CloudStorage.setItem('melstroy_balance', balance.toString(), (err, stored) => {
                     if(err) console.error("Cloud Error", err);
@@ -533,7 +527,8 @@
         }
 
         function updateUI() {
-            balanceEl.textContent = balance;
+            // Используем форматирование
+            balanceEl.textContent = formatMoney(balance);
         }
 
         function adjustBet(action) {
@@ -645,7 +640,7 @@
 
             isSpinning = true;
             balance -= betAmount;
-            saveBalance(); // Сохраняем после ставки
+            saveBalance();
             updateUI();
             payline.style.display = 'none';
             statusEl.style.opacity = '0';
@@ -718,9 +713,10 @@
             if(multiplier > 0) {
                 const winAmount = Math.floor(bet * multiplier);
                 balance += winAmount;
-                saveBalance(); // Сохраняем после выигрыша
+                saveBalance();
                 playWinSound(winAmount);
-                setTimeout(() => showStatus(`+${winAmount}`, '#fff'), 1000);
+                // Форматируем выигрыш
+                setTimeout(() => showStatus(`+${formatMoney(winAmount)}`, '#fff'), 1000);
             } else {
                 showStatus("ПОПРОБУЙ ЕЩЕ", "#ccc");
             }
@@ -728,7 +724,6 @@
             updateUI();
         }
 
-        // Запуск
         init();
     </script>
 </body>
