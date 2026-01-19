@@ -25,6 +25,7 @@
             font-family: 'Montserrat', sans-serif; overflow: hidden; user-select: none;
         }
 
+        /* Анимация звезд */
         .star {
             position: absolute; color: #ffd700; font-size: 20px;
             animation: twinkle 3s infinite ease-in-out; opacity: 0.8; z-index: 0;
@@ -110,6 +111,7 @@
         }
         .bet-btn:active { transform: translateY(1px); }
 
+        /* КНОПКА ТОПА */
         .stats-btn {
             background: linear-gradient(to right, #2b5876, #4e4376); border: 2px solid #fff; color: #fff;
             padding: 10px; border-radius: 10px; font-family: 'Montserrat', sans-serif; font-weight: bold;
@@ -124,6 +126,7 @@
         .lever-stick::after { content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); width: 25px; height: 25px; background: #b58928; border-radius: 50%; }
         .lever-knob { width: 60px; height: 60px; background: radial-gradient(circle at 30% 30%, #ff5e5e, #d92e2e); border-radius: 50%; position: absolute; top: -30px; left: 50%; transform: translateX(-50%); cursor: grab; z-index: 10; }
 
+        /* МОДАЛЬНОЕ ОКНО */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85);
             z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px);
@@ -146,6 +149,7 @@
             display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);
             margin-bottom: 8px; padding: 10px 15px; border-radius: 10px; color: #fff;
         }
+        .lb-row.is-me { border: 1px solid var(--gold-dark); background: rgba(248, 181, 0, 0.15); }
         .lb-rank { width: 30px; font-size: 16px; color: #888; font-weight: bold; }
         .lb-rank.top-1 { color: #ffd700; }
         .lb-rank.top-2 { color: #c0c0c0; }
@@ -211,6 +215,7 @@
 
     <div id="status">ЗАГРУЗКА...</div>
 
+    <!-- Модальное окно -->
     <div class="modal-overlay" id="statsModal">
         <div class="modal-content">
             <div class="close-btn" onclick="closeStats()">&times;</div>
@@ -231,7 +236,19 @@
         const SYMBOL_HEIGHT = 80;
         const MULTIPLIERS = { '💎': 20, '7️⃣': 10, '💰': 6, '🔔': 3, '🍋': 1.5, '🍒': 0.5 };
 
-        // Элементы
+        // Фейковые данные для симуляции
+        const FAKE_USERS = [
+            { name: "Melstroy", balance: 50000000, maxWin: 12000000 },
+            { name: "Pavel Durov", balance: 10000000, maxWin: 500000 },
+            { name: "Elon Musk", balance: 8000000, maxWin: 250000 },
+            { name: "Buster", balance: 2500000, maxWin: 150000 },
+            { name: "Evelone", balance: 1200000, maxWin: 80000 },
+            { name: "Stroi Batya", balance: 500000, maxWin: 25000 },
+            { name: "Casino King", balance: 300000, maxWin: 12000 },
+            { name: "Lucky Guy", balance: 150000, maxWin: 500000 },
+            { name: "Bot_3000", balance: 50000, maxWin: 2000 }
+        ];
+
         const reels = [ document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3') ];
         const balanceEl = document.getElementById('balance');
         const betInput = document.getElementById('betInput');
@@ -245,36 +262,12 @@
         let maxWin = 0;
         let isSpinning = false;
         let currentTab = 'balance';
-        let userId = null;
 
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
         let spinInterval = null, noiseBuffer = null;
 
-        // === ГЛАВНАЯ ФУНКЦИЯ СОХРАНЕНИЯ ===
-        async function saveProgress() {
-            // 1. Сначала сохраняем ЛОКАЛЬНО (надежно)
-            localStorage.setItem('melstroy_balance', balance);
-            localStorage.setItem('melstroy_maxwin', maxWin);
-
-            // 2. Затем в Telegram Cloud (если доступно)
-            if(tg.CloudStorage) {
-                tg.CloudStorage.setItem('melstroy_balance', balance.toString());
-                tg.CloudStorage.setItem('melstroy_maxwin', maxWin.toString());
-            }
-
-            // 3. Пытаемся отправить на сервер (для рейтинга)
-            // Используем 'no-await', чтобы ошибка сервера не ломала игру
-            if(userId) {
-                fetch('/api/save', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ uid: userId, balance: balance, max_win: maxWin })
-                }).catch(e => console.log('Server save failed, using local'));
-            }
-        }
-
-        // === ЗАГРУЗКА ===
+        // === ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЕ ===
         function init() {
             createNoiseBuffer();
             reels.forEach(reel => {
@@ -282,56 +275,46 @@
                 setReelPosition(reel, 10);
             });
 
-            // 1. Пробуем загрузить LocalStorage (мгновенно)
-            const localBal = localStorage.getItem('melstroy_balance');
-            const localMax = localStorage.getItem('melstroy_maxwin');
-
-            if(localBal) balance = parseInt(localBal);
-            if(localMax) maxWin = parseInt(localMax);
-
-            // 2. Смотрим URL (если бот передал данные)
-            const urlParams = new URLSearchParams(window.location.search);
-            userId = urlParams.get('uid');
-            const urlBal = urlParams.get('bal');
-
-            // Если сервер прислал баланс, он приоритетнее локального (синхронизация)
-            if(urlBal && !isNaN(urlBal)) {
-                balance = parseInt(urlBal);
-                saveProgress(); // Обновим локальный кэш
+            // Загрузка
+            if (tg.CloudStorage) {
+                tg.CloudStorage.getItem('mel_bal', (err, val) => {
+                    if (!err && val) balance = parseInt(val);
+                    else loadLocal();
+                    updateUI();
+                });
+                tg.CloudStorage.getItem('mel_max', (err, val) => {
+                    if (!err && val) maxWin = parseInt(val);
+                });
+            } else {
+                loadLocal();
+                updateUI();
             }
-
-            // Если баланс < 10 (банкрот), даем бонус
-            if(balance < 10) {
-                balance = 1000;
-                saveProgress();
-            }
-
-            updateUI();
             showStatus("ТЯНИ РЫЧАГ!", "#fff");
         }
 
-        // --- ОСТАЛЬНОЙ КОД БЕЗ ИЗМЕНЕНИЙ ---
+        function loadLocal() {
+            const locBal = localStorage.getItem('mel_bal');
+            if (locBal) balance = parseInt(locBal);
+            else balance = 1000;
+            if(balance < 10) balance = 1000; // Бонус
 
-        async function fetchLeaderboard() {
-            try {
-                const response = await fetch('/api/leaderboard');
-                if(!response.ok) throw new Error("Server error");
-                return await response.json();
-            } catch(e) {
-                // Фейк данные, если сервер недоступен
-                return {
-                    balance: [{name: "Melstroy", val: 50000000}, {name: "You (Offline)", val: balance}],
-                    wins: [{name: "Melstroy", val: 12000000}, {name: "You (Offline)", val: maxWin}]
-                };
+            const locMax = localStorage.getItem('mel_max');
+            if(locMax) maxWin = parseInt(locMax);
+        }
+
+        function saveProgress() {
+            localStorage.setItem('mel_bal', balance);
+            localStorage.setItem('mel_max', maxWin);
+            if(tg.CloudStorage) {
+                tg.CloudStorage.setItem('mel_bal', balance.toString());
+                tg.CloudStorage.setItem('mel_max', maxWin.toString());
             }
         }
 
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
-        function parseNumber(str) {
-            return parseInt(str.replace(/,/g, '')) || 0;
-        }
+        // === ИНТЕРФЕЙС ===
+        function formatNumber(num) { return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+        function parseNumber(str) { return parseInt(str.replace(/,/g, '')) || 0; }
+        function updateUI() { balanceEl.textContent = formatNumber(balance); }
 
         betInput.addEventListener('input', function() {
             let raw = this.value.replace(/\D/g, ''); if(raw === '') raw = '0';
@@ -352,12 +335,10 @@
             betInput.value = formatNumber(cur);
         }
 
-        async function openStats() {
+        // === СТАТИСТИКА ===
+        function openStats() {
             document.getElementById('statsModal').style.display = 'flex';
-            lbList.innerHTML = '<div style="color:#fff;text-align:center;">Загрузка...</div>';
-            const data = await fetchLeaderboard();
-            window.lbData = data;
-            renderLeaderboard(data);
+            renderLeaderboard();
         }
         function closeStats() { document.getElementById('statsModal').style.display = 'none'; }
 
@@ -365,27 +346,43 @@
             currentTab = tab;
             document.getElementById('tabBalance').classList.toggle('active', tab === 'balance');
             document.getElementById('tabWins').classList.toggle('active', tab === 'wins');
-            if(window.lbData) renderLeaderboard(window.lbData);
+            renderLeaderboard();
         }
 
-        function renderLeaderboard(data) {
-            const list = currentTab === 'balance' ? data.balance : data.wins;
+        function renderLeaderboard() {
+            // Симуляция: объединяем фейковых юзеров и нас
+            let list = [...FAKE_USERS];
+            let me = {
+                name: (tg.initDataUnsafe?.user?.first_name || "ВЫ (YOU)"),
+                balance: balance,
+                maxWin: maxWin
+            };
+            list.push(me);
+
+            // Сортировка
+            if (currentTab === 'balance') list.sort((a, b) => b.balance - a.balance);
+            else list.sort((a, b) => b.maxWin - a.maxWin);
+
+            // Рендер
             let html = '';
-            if(list.length === 0) html = '<div style="text-align:center;color:#888;">Пусто...</div>';
-            else {
-                list.forEach((user, index) => {
-                    let rankClass = index === 0 ? 'top-1' : (index === 1 ? 'top-2' : (index === 2 ? 'top-3' : ''));
-                    let scoreClass = currentTab === 'balance' ? 'lb-score gold' : 'lb-score';
-                    html += `<div class="lb-row"><div class="lb-rank ${rankClass}">#${index + 1}</div><div class="lb-name">${user.name}</div><div class="${scoreClass}">${formatNumber(user.val)}</div></div>`;
-                });
-            }
+            list.forEach((user, index) => {
+                let isMe = user === me;
+                let rankClass = index === 0 ? 'top-1' : (index === 1 ? 'top-2' : (index === 2 ? 'top-3' : ''));
+                let score = currentTab === 'balance' ? user.balance : user.maxWin;
+                let scoreClass = currentTab === 'balance' ? 'lb-score gold' : 'lb-score';
+
+                html += `
+                    <div class="lb-row ${isMe ? 'is-me' : ''}">
+                        <div class="lb-rank ${rankClass}">#${index + 1}</div>
+                        <div class="lb-name">${user.name}</div>
+                        <div class="${scoreClass}">${formatNumber(score)}</div>
+                    </div>
+                `;
+            });
             lbList.innerHTML = html;
         }
 
-        function updateUI() {
-            balanceEl.textContent = formatNumber(balance);
-        }
-
+        // === АУДИО И МЕХАНИКА ===
         function createNoiseBuffer() {
             if(noiseBuffer) return;
             const b = audioCtx.sampleRate; noiseBuffer = audioCtx.createBuffer(1, b, audioCtx.sampleRate);
@@ -397,13 +394,23 @@
             g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);
             o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+d);
         }
-        function playRatchet() { playTone(800,'square',0.05,0.1); }
-        function playClunk() { playTone(60,'triangle',0.2,0.4); }
+        function playFilteredNoise(f,d,v) {
+            if(!audioCtx)return; createNoiseBuffer(); const n=audioCtx.createBufferSource(); n.buffer=noiseBuffer;
+            const fl=audioCtx.createBiquadFilter(); fl.type='bandpass'; fl.frequency.value=f; fl.Q.value=5;
+            const g=audioCtx.createGain(); g.gain.setValueAtTime(v,audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+d);
+            n.connect(fl); fl.connect(g); g.connect(audioCtx.destination); n.start();
+        }
+        function playRatchet() { playFilteredNoise(2000+Math.random()*500, 0.05, 0.3); }
+        function playClunk() { playTone(60,'triangle',0.2,0.4); playFilteredNoise(800,0.1,0.3); }
         function startSound() {
             if(audioCtx.state==='suspended')audioCtx.resume();
             let n=0; spinInterval=setInterval(()=>{ playTone(400+(n%3)*100,'square',0.08,0.05); n++; },80);
         }
         function stopSound() { clearInterval(spinInterval); playTone(800,'sine',0.2,0.1); }
+        function playWin(amt) {
+            [523,659,783].forEach((n,i)=>setTimeout(()=>playTone(n,'sine',0.4),i*150));
+            if(amt>=100) for(let k=0;k<10;k++) setTimeout(()=>playFilteredNoise(2000+Math.random()*1000,0.05,0.1),600+k*60);
+        }
 
         function generateStripHTML(c) { let h=''; for(let i=0;i<c;i++) h+=`<div class="symbol">${SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]}</div>`; return h; }
         function setReelPosition(r, i) { r.style.transform = `translateY(${-(i*SYMBOL_HEIGHT)+40}px)`; }
@@ -460,8 +467,7 @@
                 balance += win;
                 if(win > maxWin) maxWin = win;
                 saveProgress();
-                // Звук и статус
-                [523,659,783].forEach((n,i)=>setTimeout(()=>playTone(n,'sine',0.4),i*150));
+                playWin(win);
                 setTimeout(()=>showStatus(`+${formatNumber(win)}`, '#fff'), 1000);
             } else { showStatus("ПОПРОБУЙ ЕЩЕ", "#ccc"); }
             updateUI();
