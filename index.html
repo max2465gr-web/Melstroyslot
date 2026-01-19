@@ -25,7 +25,7 @@
             font-family: 'Montserrat', sans-serif; overflow: hidden; user-select: none;
         }
 
-        /* Анимация звезд */
+        /* ЗВЕЗДЫ */
         .star {
             position: absolute; color: #ffd700; font-size: 20px;
             animation: twinkle 3s infinite ease-in-out; opacity: 0.8; z-index: 0;
@@ -33,6 +33,30 @@
         @keyframes twinkle {
             0%, 100% { opacity: 0.4; transform: scale(0.8); }
             50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* НОВАЯ КНОПКА ТОПА (СПРАВА СВЕРХУ) */
+        .top-right-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 20;
+            transition: transform 0.2s;
+        }
+        .top-right-btn:active { transform: scale(0.9); }
+        .top-right-btn::after {
+            content: '🏆';
         }
 
         .neon-sign {
@@ -48,7 +72,7 @@
         }
 
         .slot-machine {
-            width: 340px; height: 380px;
+            width: 340px; height: 340px; /* Компактный корпус */
             background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-light) 50%, var(--gold-dark) 100%);
             border-radius: 30px; padding: 15px;
             box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.5), 0 20px 50px rgba(0,0,0,0.6), 0 0 0 5px var(--gold-shadow);
@@ -111,15 +135,6 @@
         }
         .bet-btn:active { transform: translateY(1px); }
 
-        /* КНОПКА ТОПА */
-        .stats-btn {
-            background: linear-gradient(to right, #2b5876, #4e4376); border: 2px solid #fff; color: #fff;
-            padding: 10px; border-radius: 10px; font-family: 'Montserrat', sans-serif; font-weight: bold;
-            cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            display: flex; justify-content: center; align-items: center; gap: 10px;
-        }
-        .stats-btn:active { transform: scale(0.95); }
-
         .lever-container { position: absolute; right: -30px; top: 50px; width: 60px; height: 200px; z-index: 1; }
         .lever-handle { position: absolute; left: 10px; top: 110px; width: 20px; height: 120px; transform-origin: bottom center; transform: rotate(0deg); }
         .lever-stick { width: 15px; height: 100%; background: linear-gradient(90deg, #e6b853, #fff, #b58928); border-radius: 10px; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); }
@@ -147,7 +162,7 @@
         .leaderboard-list { flex: 1; overflow-y: auto; padding: 10px; }
         .lb-row {
             display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);
-            margin-bottom: 8px; padding: 10px 15px; border-radius: 10px; color: #fff;
+            margin-bottom: 8px; padding: 10px 15px; border-radius: 10px; color: #fff; transition: all 0.3s;
         }
         .lb-row.is-me { border: 1px solid var(--gold-dark); background: rgba(248, 181, 0, 0.15); }
         .lb-rank { width: 30px; font-size: 16px; color: #888; font-weight: bold; }
@@ -170,6 +185,9 @@
     <div class="star" style="top: 10%; left: 10%;">★</div>
     <div class="star" style="top: 20%; right: 15%;">★</div>
     <div class="star" style="top: 80%; left: 20%;">★</div>
+
+    <!-- Кнопка ТОП ИГРОКОВ (Справа сверху) -->
+    <div class="top-right-btn" onclick="openStats()"></div>
 
     <div class="neon-sign">MELSTROY<br>SLOT</div>
 
@@ -200,8 +218,6 @@
                         <button class="bet-btn" onclick="adjustBet('max')">MAX</button>
                     </div>
                 </div>
-
-                <button class="stats-btn" onclick="openStats()">🏆 ТОП ИГРОКОВ</button>
             </div>
         </div>
 
@@ -236,18 +252,43 @@
         const SYMBOL_HEIGHT = 80;
         const MULTIPLIERS = { '💎': 20, '7️⃣': 10, '💰': 6, '🔔': 3, '🍋': 1.5, '🍒': 0.5 };
 
-        // Фейковые данные для симуляции
+        // === ЖИВАЯ СИМУЛЯЦИЯ ДАННЫХ ===
         const FAKE_USERS = [
             { name: "Melstroy", balance: 50000000, maxWin: 12000000 },
-            { name: "Pavel Durov", balance: 10000000, maxWin: 500000 },
-            { name: "Elon Musk", balance: 8000000, maxWin: 250000 },
-            { name: "Buster", balance: 2500000, maxWin: 150000 },
-            { name: "Evelone", balance: 1200000, maxWin: 80000 },
-            { name: "Stroi Batya", balance: 500000, maxWin: 25000 },
-            { name: "Casino King", balance: 300000, maxWin: 12000 },
-            { name: "Lucky Guy", balance: 150000, maxWin: 500000 },
-            { name: "Bot_3000", balance: 50000, maxWin: 2000 }
+            { name: "Pavel Durov", balance: 10000000, maxWin: 5000000 },
+            { name: "Elon Musk", balance: 8000000, maxWin: 2500000 },
+            { name: "Buster", balance: 2500000, maxWin: 1500000 },
+            { name: "Evelone", balance: 1200000, maxWin: 800000 },
+            { name: "Mellstroy_Fan", balance: 500000, maxWin: 250000 },
+            { name: "Casino King", balance: 300000, maxWin: 120000 },
+            { name: "Lucky Guy", balance: 150000, maxWin: 50000 },
+            { name: "Slot Machine", balance: 50000, maxWin: 20000 }
         ];
+
+        // Запускаем жизнь ботов
+        setInterval(() => {
+            // Берем случайного бота
+            const randomBot = FAKE_USERS[Math.floor(Math.random() * FAKE_USERS.length)];
+
+            // Симулируем спин: 40% выигрыш, 60% проигрыш
+            if(Math.random() > 0.6) {
+                // Выиграл
+                const win = Math.floor(Math.random() * 50000);
+                randomBot.balance += win;
+                if(win > randomBot.maxWin) randomBot.maxWin = win;
+            } else {
+                // Проиграл ставку
+                randomBot.balance -= Math.floor(Math.random() * 5000);
+                if(randomBot.balance < 1000) randomBot.balance = 50000; // Ребай
+            }
+
+            // Если окно открыто, обновляем список
+            if(document.getElementById('statsModal').style.display === 'flex') {
+                renderLeaderboard();
+            }
+        }, 3000); // Каждые 3 секунды обновление
+
+        // ======================================
 
         const reels = [ document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3') ];
         const balanceEl = document.getElementById('balance');
@@ -267,7 +308,6 @@
         const audioCtx = new AudioContext();
         let spinInterval = null, noiseBuffer = null;
 
-        // === ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЕ ===
         function init() {
             createNoiseBuffer();
             reels.forEach(reel => {
@@ -275,7 +315,6 @@
                 setReelPosition(reel, 10);
             });
 
-            // Загрузка
             if (tg.CloudStorage) {
                 tg.CloudStorage.getItem('mel_bal', (err, val) => {
                     if (!err && val) balance = parseInt(val);
@@ -296,7 +335,7 @@
             const locBal = localStorage.getItem('mel_bal');
             if (locBal) balance = parseInt(locBal);
             else balance = 1000;
-            if(balance < 10) balance = 1000; // Бонус
+            if(balance < 10) balance = 1000;
 
             const locMax = localStorage.getItem('mel_max');
             if(locMax) maxWin = parseInt(locMax);
@@ -311,7 +350,6 @@
             }
         }
 
-        // === ИНТЕРФЕЙС ===
         function formatNumber(num) { return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
         function parseNumber(str) { return parseInt(str.replace(/,/g, '')) || 0; }
         function updateUI() { balanceEl.textContent = formatNumber(balance); }
@@ -335,7 +373,6 @@
             betInput.value = formatNumber(cur);
         }
 
-        // === СТАТИСТИКА ===
         function openStats() {
             document.getElementById('statsModal').style.display = 'flex';
             renderLeaderboard();
@@ -350,7 +387,7 @@
         }
 
         function renderLeaderboard() {
-            // Симуляция: объединяем фейковых юзеров и нас
+            // Симуляция: Создаем "снимок" данных, объединяя ботов и нас
             let list = [...FAKE_USERS];
             let me = {
                 name: (tg.initDataUnsafe?.user?.first_name || "ВЫ (YOU)"),
@@ -382,7 +419,7 @@
             lbList.innerHTML = html;
         }
 
-        // === АУДИО И МЕХАНИКА ===
+        // Аудио (без изменений)
         function createNoiseBuffer() {
             if(noiseBuffer) return;
             const b = audioCtx.sampleRate; noiseBuffer = audioCtx.createBuffer(1, b, audioCtx.sampleRate);
