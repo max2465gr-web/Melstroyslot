@@ -35,29 +35,45 @@
             50% { opacity: 1; transform: scale(1.2); }
         }
 
-        /* НОВАЯ КНОПКА ТОПА (СПРАВА СВЕРХУ) */
-        .top-right-btn {
+        /* ПАНЕЛЬ КНОПОК СПРАВА СВЕРХУ */
+        .top-right-panel {
             position: absolute;
             top: 20px;
             right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 20;
+        }
+
+        .icon-btn {
             width: 50px;
             height: 50px;
-            background: linear-gradient(135deg, #ffd700, #ff8c00);
             border: 2px solid #fff;
             border-radius: 50%;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 24px;
             cursor: pointer;
-            z-index: 20;
             transition: transform 0.2s;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
-        .top-right-btn:active { transform: scale(0.9); }
-        .top-right-btn::after {
-            content: '🏆';
+        .icon-btn:active { transform: scale(0.9); }
+
+        /* Кнопка Топа (Золотая) */
+        .stats-btn {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
         }
+        .stats-btn::after { content: '🏆'; }
+
+        /* Кнопка Сброса (Красная) */
+        .reset-btn {
+            background: linear-gradient(135deg, #ff4d4d, #990000);
+            box-shadow: 0 0 15px rgba(255, 77, 77, 0.5);
+        }
+        .reset-btn::after { content: '🔄'; }
+
 
         .neon-sign {
             font-size: 36px; color: #fff; text-transform: uppercase; letter-spacing: 2px;
@@ -72,7 +88,7 @@
         }
 
         .slot-machine {
-            width: 340px; height: 340px; /* Компактный корпус */
+            width: 340px; height: 340px;
             background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-light) 50%, var(--gold-dark) 100%);
             border-radius: 30px; padding: 15px;
             box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.5), 0 20px 50px rgba(0,0,0,0.6), 0 0 0 5px var(--gold-shadow);
@@ -186,8 +202,11 @@
     <div class="star" style="top: 20%; right: 15%;">★</div>
     <div class="star" style="top: 80%; left: 20%;">★</div>
 
-    <!-- Кнопка ТОП ИГРОКОВ (Справа сверху) -->
-    <div class="top-right-btn" onclick="openStats()"></div>
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ С КНОПКАМИ -->
+    <div class="top-right-panel">
+        <div class="icon-btn reset-btn" onclick="resetBalance()"></div>
+        <div class="icon-btn stats-btn" onclick="openStats()"></div>
+    </div>
 
     <div class="neon-sign">MELSTROY<br>SLOT</div>
 
@@ -252,7 +271,6 @@
         const SYMBOL_HEIGHT = 80;
         const MULTIPLIERS = { '💎': 20, '7️⃣': 10, '💰': 6, '🔔': 3, '🍋': 1.5, '🍒': 0.5 };
 
-        // === ЖИВАЯ СИМУЛЯЦИЯ ДАННЫХ ===
         const FAKE_USERS = [
             { name: "Melstroy", balance: 50000000, maxWin: 12000000 },
             { name: "Pavel Durov", balance: 10000000, maxWin: 5000000 },
@@ -265,30 +283,21 @@
             { name: "Slot Machine", balance: 50000, maxWin: 20000 }
         ];
 
-        // Запускаем жизнь ботов
+        // Симуляция живых игроков
         setInterval(() => {
-            // Берем случайного бота
             const randomBot = FAKE_USERS[Math.floor(Math.random() * FAKE_USERS.length)];
-
-            // Симулируем спин: 40% выигрыш, 60% проигрыш
             if(Math.random() > 0.6) {
-                // Выиграл
                 const win = Math.floor(Math.random() * 50000);
                 randomBot.balance += win;
                 if(win > randomBot.maxWin) randomBot.maxWin = win;
             } else {
-                // Проиграл ставку
                 randomBot.balance -= Math.floor(Math.random() * 5000);
-                if(randomBot.balance < 1000) randomBot.balance = 50000; // Ребай
+                if(randomBot.balance < 1000) randomBot.balance = 50000;
             }
-
-            // Если окно открыто, обновляем список
             if(document.getElementById('statsModal').style.display === 'flex') {
                 renderLeaderboard();
             }
-        }, 3000); // Каждые 3 секунды обновление
-
-        // ======================================
+        }, 3000);
 
         const reels = [ document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3') ];
         const balanceEl = document.getElementById('balance');
@@ -350,6 +359,15 @@
             }
         }
 
+        function resetBalance() {
+            if(confirm("Сбросить баланс до 1,000?")) {
+                balance = 1000;
+                saveProgress();
+                updateUI();
+                showStatus("БАЛАНС СБРОШЕН", "#ffd700");
+            }
+        }
+
         function formatNumber(num) { return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
         function parseNumber(str) { return parseInt(str.replace(/,/g, '')) || 0; }
         function updateUI() { balanceEl.textContent = formatNumber(balance); }
@@ -387,7 +405,6 @@
         }
 
         function renderLeaderboard() {
-            // Симуляция: Создаем "снимок" данных, объединяя ботов и нас
             let list = [...FAKE_USERS];
             let me = {
                 name: (tg.initDataUnsafe?.user?.first_name || "ВЫ (YOU)"),
@@ -396,11 +413,9 @@
             };
             list.push(me);
 
-            // Сортировка
             if (currentTab === 'balance') list.sort((a, b) => b.balance - a.balance);
             else list.sort((a, b) => b.maxWin - a.maxWin);
 
-            // Рендер
             let html = '';
             list.forEach((user, index) => {
                 let isMe = user === me;
@@ -419,7 +434,6 @@
             lbList.innerHTML = html;
         }
 
-        // Аудио (без изменений)
         function createNoiseBuffer() {
             if(noiseBuffer) return;
             const b = audioCtx.sampleRate; noiseBuffer = audioCtx.createBuffer(1, b, audioCtx.sampleRate);
