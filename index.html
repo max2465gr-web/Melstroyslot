@@ -35,45 +35,33 @@
             50% { opacity: 1; transform: scale(1.2); }
         }
 
-        /* ПАНЕЛЬ КНОПОК СПРАВА СВЕРХУ */
+        /* ПАНЕЛЬ КНОПОК СПРАВА СВЕРХУ (Топ + Сброс) */
         .top-right-panel {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-            z-index: 20;
+            position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 20;
         }
 
+        /* ПАНЕЛЬ ЗВУКА СПРАВА СНИЗУ */
+        .bottom-right-panel {
+            position: absolute; bottom: 20px; right: 20px; z-index: 20;
+        }
+
+        /* ОБЩИЙ СТИЛЬ КРУГЛЫХ КНОПОК */
         .icon-btn {
-            width: 50px;
-            height: 50px;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            cursor: pointer;
-            transition: transform 0.2s;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            width: 50px; height: 50px; border: 2px solid #fff; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 24px; cursor: pointer; transition: transform 0.2s;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5); user-select: none;
         }
         .icon-btn:active { transform: scale(0.9); }
 
-        /* Кнопка Топа (Золотая) */
-        .stats-btn {
-            background: linear-gradient(135deg, #ffd700, #ff8c00);
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-        }
+        /* Цвета кнопок */
+        .stats-btn { background: linear-gradient(135deg, #ffd700, #ff8c00); box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
+        .reset-btn { background: linear-gradient(135deg, #ff4d4d, #990000); box-shadow: 0 0 15px rgba(255, 77, 77, 0.5); }
+        .sound-btn { background: linear-gradient(135deg, #00f2ff, #0078ff); box-shadow: 0 0 15px rgba(0, 242, 255, 0.5); }
+        .sound-btn.muted { background: linear-gradient(135deg, #555, #333); box-shadow: none; filter: grayscale(1); }
+
         .stats-btn::after { content: '🏆'; }
-
-        /* Кнопка Сброса (Красная) */
-        .reset-btn {
-            background: linear-gradient(135deg, #ff4d4d, #990000);
-            box-shadow: 0 0 15px rgba(255, 77, 77, 0.5);
-        }
         .reset-btn::after { content: '🔄'; }
-
 
         .neon-sign {
             font-size: 36px; color: #fff; text-transform: uppercase; letter-spacing: 2px;
@@ -157,7 +145,6 @@
         .lever-stick::after { content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); width: 25px; height: 25px; background: #b58928; border-radius: 50%; }
         .lever-knob { width: 60px; height: 60px; background: radial-gradient(circle at 30% 30%, #ff5e5e, #d92e2e); border-radius: 50%; position: absolute; top: -30px; left: 50%; transform: translateX(-50%); cursor: grab; z-index: 10; }
 
-        /* МОДАЛЬНОЕ ОКНО */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85);
             z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px);
@@ -202,10 +189,15 @@
     <div class="star" style="top: 20%; right: 15%;">★</div>
     <div class="star" style="top: 80%; left: 20%;">★</div>
 
-    <!-- ВЕРХНЯЯ ПАНЕЛЬ С КНОПКАМИ -->
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
     <div class="top-right-panel">
         <div class="icon-btn reset-btn" onclick="resetBalance()"></div>
         <div class="icon-btn stats-btn" onclick="openStats()"></div>
+    </div>
+
+    <!-- НИЖНЯЯ ПАНЕЛЬ (Звук) -->
+    <div class="bottom-right-panel">
+        <div class="icon-btn sound-btn" id="soundBtn" onclick="toggleSound()">🔊</div>
     </div>
 
     <div class="neon-sign">MELSTROY<br>SLOT</div>
@@ -307,11 +299,13 @@
         const leverHandle = document.getElementById('leverHandle');
         const leverKnob = document.getElementById('leverKnob');
         const lbList = document.getElementById('lbList');
+        const soundBtn = document.getElementById('soundBtn');
 
         let balance = 1000;
         let maxWin = 0;
         let isSpinning = false;
         let currentTab = 'balance';
+        let isMuted = false;
 
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
@@ -337,6 +331,7 @@
                 loadLocal();
                 updateUI();
             }
+            loadMuteState();
             showStatus("ТЯНИ РЫЧАГ!", "#fff");
         }
 
@@ -434,19 +429,45 @@
             lbList.innerHTML = html;
         }
 
+        // === АУДИО И МЕХАНИКА ===
+        function loadMuteState() {
+            const muted = localStorage.getItem('mel_muted');
+            if (muted === 'true') {
+                isMuted = true;
+                soundBtn.textContent = '🔇';
+                soundBtn.classList.add('muted');
+            }
+        }
+
+        function toggleSound() {
+            isMuted = !isMuted;
+            localStorage.setItem('mel_muted', isMuted);
+            if (isMuted) {
+                soundBtn.textContent = '🔇';
+                soundBtn.classList.add('muted');
+                stopSound(); // Остановить текущий звук если есть
+            } else {
+                soundBtn.textContent = '🔊';
+                soundBtn.classList.remove('muted');
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+            }
+        }
+
         function createNoiseBuffer() {
             if(noiseBuffer) return;
             const b = audioCtx.sampleRate; noiseBuffer = audioCtx.createBuffer(1, b, audioCtx.sampleRate);
             const o = noiseBuffer.getChannelData(0); for(let i=0; i<b; i++) o[i] = Math.random()*2-1;
         }
         function playTone(f,t,d,v=0.1) {
-            if(!audioCtx)return; const o=audioCtx.createOscillator(); const g=audioCtx.createGain();
+            if(isMuted || !audioCtx) return;
+            const o=audioCtx.createOscillator(); const g=audioCtx.createGain();
             o.type=t; o.frequency.value=f; g.gain.value=v;
             g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);
             o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+d);
         }
         function playFilteredNoise(f,d,v) {
-            if(!audioCtx)return; createNoiseBuffer(); const n=audioCtx.createBufferSource(); n.buffer=noiseBuffer;
+            if(isMuted || !audioCtx) return;
+            createNoiseBuffer(); const n=audioCtx.createBufferSource(); n.buffer=noiseBuffer;
             const fl=audioCtx.createBiquadFilter(); fl.type='bandpass'; fl.frequency.value=f; fl.Q.value=5;
             const g=audioCtx.createGain(); g.gain.setValueAtTime(v,audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+d);
             n.connect(fl); fl.connect(g); g.connect(audioCtx.destination); n.start();
@@ -454,11 +475,15 @@
         function playRatchet() { playFilteredNoise(2000+Math.random()*500, 0.05, 0.3); }
         function playClunk() { playTone(60,'triangle',0.2,0.4); playFilteredNoise(800,0.1,0.3); }
         function startSound() {
-            if(audioCtx.state==='suspended')audioCtx.resume();
-            let n=0; spinInterval=setInterval(()=>{ playTone(400+(n%3)*100,'square',0.08,0.05); n++; },80);
+            if(isMuted || audioCtx.state==='suspended') { if(!isMuted) audioCtx.resume(); return; }
+            let n=0; spinInterval=setInterval(()=>{
+                if(isMuted) { clearInterval(spinInterval); return; }
+                playTone(400+(n%3)*100,'square',0.08,0.05); n++;
+            },80);
         }
-        function stopSound() { clearInterval(spinInterval); playTone(800,'sine',0.2,0.1); }
+        function stopSound() { clearInterval(spinInterval); if(!isMuted) playTone(800,'sine',0.2,0.1); }
         function playWin(amt) {
+            if(isMuted) return;
             [523,659,783].forEach((n,i)=>setTimeout(()=>playTone(n,'sine',0.4),i*150));
             if(amt>=100) for(let k=0;k<10;k++) setTimeout(()=>playFilteredNoise(2000+Math.random()*1000,0.05,0.1),600+k*60);
         }
