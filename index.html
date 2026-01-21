@@ -240,6 +240,7 @@
 
     <div id="status">ЗАГРУЗКА...</div>
 
+    <!-- МОДАЛ: ТОП -->
     <div class="modal-overlay" id="statsModal">
         <div class="modal-content">
             <div class="close-btn" onclick="closeModal('statsModal')">&times;</div>
@@ -252,6 +253,7 @@
         </div>
     </div>
 
+    <!-- МОДАЛ: ИНФО -->
     <div class="modal-overlay" id="infoModal">
         <div class="modal-content">
             <div class="close-btn" onclick="closeModal('infoModal')">&times;</div>
@@ -265,13 +267,15 @@
         tg.expand();
 
         // === НАСТРОЙКИ СИМВОЛОВ ===
-        // ВСТАВЬТЕ СЮДА ВАШИ ССЫЛКИ
+        // ВСТАВЬТЕ СЮДА ССЫЛКИ
         const SYMBOLS = [
             { id: 'mel', type: 'img', val: 'https://placehold.co/100x100/ff0000/FFF?text=MELL' },
             { id: 'tun', type: 'img', val: 'https://placehold.co/100x100/00ff00/000?text=TUN' },
             { id: '777', type: 'text', val: '7️⃣' },
             { id: 'bag', type: 'text', val: '💰' },
             { id: 'gem', type: 'text', val: '💎' },
+            { id: 'bell', type: 'text', val: '🔔' },
+            { id: 'lemon', type: 'text', val: '🍋' },
             { id: 'cherry', type: 'text', val: '🍒' }
         ];
 
@@ -283,7 +287,9 @@
             '777': 10,
             'bag': 5,
             'gem': 3,
-            'cherry': 2
+            'bell': 2.5,
+            'lemon': 1.5,
+            'cherry': 0.5
         };
 
         const FAKE_USERS = [
