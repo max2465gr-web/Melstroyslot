@@ -25,6 +25,7 @@
             font-family: 'Montserrat', sans-serif; overflow: hidden; user-select: none;
         }
 
+        /* ЗВЕЗДЫ */
         .star {
             position: absolute; color: #ffd700; font-size: 20px;
             animation: twinkle 3s infinite ease-in-out; opacity: 0.8; z-index: 0;
@@ -34,6 +35,7 @@
             50% { opacity: 1; transform: scale(1.2); }
         }
 
+        /* КНОПКИ */
         .top-right-panel { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 20; }
         .bottom-right-panel { position: absolute; bottom: 20px; right: 20px; z-index: 20; }
 
@@ -98,7 +100,7 @@
             height: 80px; display: flex; align-items: center; justify-content: center; font-size: 45px;
         }
 
-        /* Стили для картинок (Мелстрой/ТунТун) */
+        /* Стили для картинок */
         .symbol img {
             width: 65px; height: 65px; object-fit: contain;
             filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
@@ -141,6 +143,7 @@
         .lever-stick::after { content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); width: 25px; height: 25px; background: #b58928; border-radius: 50%; }
         .lever-knob { width: 60px; height: 60px; background: radial-gradient(circle at 30% 30%, #ff5e5e, #d92e2e); border-radius: 50%; position: absolute; top: -30px; left: 50%; transform: translateX(-50%); cursor: grab; z-index: 10; }
 
+        /* МОДАЛЬНЫЕ ОКНА */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85);
             z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px);
@@ -262,13 +265,14 @@
         tg.expand();
 
         // === НАСТРОЙКИ СИМВОЛОВ ===
+        // ВСТАВЬТЕ СЮДА ВАШИ ССЫЛКИ
         const SYMBOLS = [
-            { id: 'mel', type: 'img', val: 'https://placehold.co/100x100/ff0000/FFF?text=MELL' }, // ФОТО МЕЛСТРОЯ
-            { id: 'tun', type: 'img', val: 'https://placehold.co/100x100/00ff00/000?text=TUN' },  // ФОТО ТУН ТУНА
+            { id: 'mel', type: 'img', val: 'https://placehold.co/100x100/ff0000/FFF?text=MELL' },
+            { id: 'tun', type: 'img', val: 'https://placehold.co/100x100/00ff00/000?text=TUN' },
+            { id: '777', type: 'text', val: '7️⃣' },
+            { id: 'bag', type: 'text', val: '💰' },
             { id: 'gem', type: 'text', val: '💎' },
-            { id: 'bell', type: 'text', val: '🔔' },
-            { id: 'lemon', type: 'text', val: '🍋' },
-            { id: 'bag', type: 'text', val: '💰' }
+            { id: 'cherry', type: 'text', val: '🍒' }
         ];
 
         const SYMBOL_HEIGHT = 80;
@@ -276,10 +280,10 @@
         const MULTIPLIERS = {
             'mel': 50,
             'tun': 25,
-            'gem': 10,
+            '777': 10,
             'bag': 5,
-            'bell': 3,
-            'lemon': 2
+            'gem': 3,
+            'cherry': 2
         };
 
         const FAKE_USERS = [
@@ -521,7 +525,6 @@
             if(amt>=100) for(let k=0;k<10;k++) setTimeout(()=>playFilteredNoise(2000+Math.random()*1000,0.05,0.1),600+k*60);
         }
 
-        // Рендер барабанов
         function generateStripHTML(c) {
             let h='';
             for(let i=0;i<c;i++) {
@@ -553,10 +556,9 @@
             startSound();
 
             let res = [];
-            // 35% шанс
+            // 35% шанс на выигрыш
             if(Math.random()<0.35) {
                 let s = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
-                // 50% пара, 50% тройка
                 res = Math.random() > 0.5
                     ? [s, s, SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]]
                     : [s, s, s];
@@ -566,7 +568,7 @@
 
             reels.forEach((r, i) => {
                 let arr=[]; for(let k=0;k<20;k++) arr.push(SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]);
-                arr[18] = res[i]; // WIN
+                arr[18] = res[i];
 
                 r.innerHTML = arr.map(s => {
                     if(s.type === 'img') return `<div class="symbol ${Math.random()>0.5?'blur':''}"><img src="${s.val}"></div>`;
