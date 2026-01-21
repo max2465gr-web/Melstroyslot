@@ -267,10 +267,8 @@
         tg.expand();
 
         // === НАСТРОЙКИ СИМВОЛОВ ===
-        // ВСТАВЬТЕ СЮДА ССЫЛКИ
         const SYMBOLS = [
             { id: 'mel', type: 'img', val: 'https://ltdfoto.ru/images/2026/01/21/8580fcabde66c0c835050b7188ee0e94-1.jpg' },
-            { id: 'tun', type: 'img', val: 'https://placehold.co/100x100/00ff00/000?text=TUN' },
             { id: '777', type: 'text', val: '7️⃣' },
             { id: 'bag', type: 'text', val: '💰' },
             { id: 'gem', type: 'text', val: '💎' },
@@ -283,7 +281,6 @@
 
         const MULTIPLIERS = {
             'mel': 50,
-            'tun': 25,
             '777': 10,
             'bag': 5,
             'gem': 3,
@@ -562,7 +559,6 @@
             startSound();
 
             let res = [];
-            // 35% шанс на выигрыш
             if(Math.random()<0.35) {
                 let s = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
                 res = Math.random() > 0.5
