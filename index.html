@@ -25,7 +25,6 @@
             font-family: 'Montserrat', sans-serif; overflow: hidden; user-select: none;
         }
 
-        /* ЗВЕЗДЫ */
         .star {
             position: absolute; color: #ffd700; font-size: 20px;
             animation: twinkle 3s infinite ease-in-out; opacity: 0.8; z-index: 0;
@@ -35,7 +34,6 @@
             50% { opacity: 1; transform: scale(1.2); }
         }
 
-        /* КНОПКИ */
         .top-right-panel { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 20; }
         .bottom-right-panel { position: absolute; bottom: 20px; right: 20px; z-index: 20; }
 
@@ -49,13 +47,10 @@
 
         .stats-btn { background: linear-gradient(135deg, #ffd700, #ff8c00); }
         .stats-btn::after { content: '🏆'; }
-
         .reset-btn { background: linear-gradient(135deg, #ff4d4d, #990000); }
         .reset-btn::after { content: '🔄'; }
-
         .info-btn { background: linear-gradient(135deg, #3498db, #2980b9); }
         .info-btn::after { content: 'ℹ️'; }
-
         .sound-btn { background: linear-gradient(135deg, #00f2ff, #0078ff); }
         .sound-btn.muted { background: linear-gradient(135deg, #555, #333); filter: grayscale(1); }
 
@@ -100,10 +95,10 @@
         .reel-strip { position: absolute; top: 0; left: 0; width: 100%; }
 
         .symbol {
-            height: 80px; display: flex; align-items: center; justify-content: center;
+            height: 80px; display: flex; align-items: center; justify-content: center; font-size: 45px;
         }
 
-        /* Стили для картинок в слотах */
+        /* Стили для картинок (Мелстрой/ТунТун) */
         .symbol img {
             width: 65px; height: 65px; object-fit: contain;
             filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
@@ -146,7 +141,6 @@
         .lever-stick::after { content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); width: 25px; height: 25px; background: #b58928; border-radius: 50%; }
         .lever-knob { width: 60px; height: 60px; background: radial-gradient(circle at 30% 30%, #ff5e5e, #d92e2e); border-radius: 50%; position: absolute; top: -30px; left: 50%; transform: translateX(-50%); cursor: grab; z-index: 10; }
 
-        /* МОДАЛЬНЫЕ ОКНА */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85);
             z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px);
@@ -174,8 +168,9 @@
         .lb-rank { width: 30px; font-size: 16px; color: #888; font-weight: bold; }
         .lb-score, .pay-val { font-family: 'Montserrat', monospace; color: #ffd700; font-weight: bold; font-size: 14px; }
 
-        .pay-sym { margin-right: 15px; }
-        .pay-sym img { width: 40px; height: 40px; vertical-align: middle; }
+        .pay-sym { margin-right: 15px; display: flex; align-items: center; }
+        .pay-sym img { width: 40px; height: 40px; }
+        .pay-sym-emoji { font-size: 30px; }
 
         #status {
             position: fixed; bottom: 20px; font-size: 20px; color: #fff; text-shadow: 0 2px 4px #000;
@@ -190,14 +185,12 @@
     <div class="star" style="top: 20%; right: 15%;">★</div>
     <div class="star" style="top: 80%; left: 20%;">★</div>
 
-    <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
     <div class="top-right-panel">
         <div class="icon-btn info-btn" onclick="openInfo()"></div>
         <div class="icon-btn reset-btn" onclick="resetBalance()"></div>
         <div class="icon-btn stats-btn" onclick="openStats()"></div>
     </div>
 
-    <!-- НИЖНЯЯ ПАНЕЛЬ -->
     <div class="bottom-right-panel">
         <div class="icon-btn sound-btn" id="soundBtn" onclick="toggleSound()">🔊</div>
     </div>
@@ -244,7 +237,6 @@
 
     <div id="status">ЗАГРУЗКА...</div>
 
-    <!-- МОДАЛ: ТОП -->
     <div class="modal-overlay" id="statsModal">
         <div class="modal-content">
             <div class="close-btn" onclick="closeModal('statsModal')">&times;</div>
@@ -257,14 +249,11 @@
         </div>
     </div>
 
-    <!-- МОДАЛ: ИНФО (Выплаты) -->
     <div class="modal-overlay" id="infoModal">
         <div class="modal-content">
             <div class="close-btn" onclick="closeModal('infoModal')">&times;</div>
             <div class="modal-header"><div class="modal-title">Выплаты</div></div>
-            <div class="payout-list" id="payoutList">
-                <!-- Заполняется JS -->
-            </div>
+            <div class="payout-list" id="payoutList"></div>
         </div>
     </div>
 
@@ -272,26 +261,25 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // === НАСТРОЙКА КАРТИНОК ===
-        // ВСТАВЬТЕ СЮДА ССЫЛКИ НА ВАШИ ФОТО (можно с Imgur или Telegram)
-        const ASSETS = {
-            'mel': 'https://placehold.co/100x100/ff0000/FFF?text=MELL',  // МЕЛСТРОЙ
-            'tun': 'https://placehold.co/100x100/00ff00/000?text=TUN',   // ТУН ТУН
-            'svin': 'https://placehold.co/100x100/ff69b4/FFF?text=PIG',  // СВИН
-            '777': 'https://placehold.co/100x100/gold/000?text=777',     // СЕМЕРКА
-            'cherry': 'https://placehold.co/100x100/purple/FFF?text=CHERRY' // ВИШНЯ
-        };
+        // === НАСТРОЙКИ СИМВОЛОВ ===
+        const SYMBOLS = [
+            { id: 'mel', type: 'img', val: 'https://placehold.co/100x100/ff0000/FFF?text=MELL' }, // ФОТО МЕЛСТРОЯ
+            { id: 'tun', type: 'img', val: 'https://placehold.co/100x100/00ff00/000?text=TUN' },  // ФОТО ТУН ТУНА
+            { id: 'gem', type: 'text', val: '💎' },
+            { id: 'bell', type: 'text', val: '🔔' },
+            { id: 'lemon', type: 'text', val: '🍋' },
+            { id: 'bag', type: 'text', val: '💰' }
+        ];
 
-        const SYMBOLS_ID = ['mel', 'tun', 'svin', '777', 'cherry'];
         const SYMBOL_HEIGHT = 80;
 
-        // Множители
         const MULTIPLIERS = {
             'mel': 50,
             'tun': 25,
-            'svin': 10,
-            '777': 5,
-            'cherry': 2
+            'gem': 10,
+            'bag': 5,
+            'bell': 3,
+            'lemon': 2
         };
 
         const FAKE_USERS = [
@@ -306,7 +294,6 @@
             { name: "Slot Machine", balance: 50000, maxWin: 20000 }
         ];
 
-        // Симуляция ботов
         setInterval(() => {
             const randomBot = FAKE_USERS[Math.floor(Math.random() * FAKE_USERS.length)];
             if(Math.random() > 0.6) {
@@ -362,17 +349,21 @@
                 updateUI();
             }
             loadMuteState();
-            renderPayouts(); // Генерируем таблицу
+            renderPayouts();
             showStatus("ТЯНИ РЫЧАГ!", "#fff");
         }
 
         function renderPayouts() {
             let html = '';
-            SYMBOLS_ID.forEach(id => {
+            SYMBOLS.forEach(s => {
+                let icon = s.type === 'img'
+                    ? `<img src="${s.val}">`
+                    : `<span class="pay-sym-emoji">${s.val}</span>`;
+
                 html += `
                     <div class="payout-row">
-                        <span class="pay-sym"><img src="${ASSETS[id]}"></span>
-                        <span class="pay-val">x${MULTIPLIERS[id]}</span>
+                        <span class="pay-sym">${icon}</span>
+                        <span class="pay-val">x${MULTIPLIERS[s.id]}</span>
                     </div>
                 `;
             });
@@ -530,12 +521,13 @@
             if(amt>=100) for(let k=0;k<10;k++) setTimeout(()=>playFilteredNoise(2000+Math.random()*1000,0.05,0.1),600+k*60);
         }
 
-        // Генерируем картинки
+        // Рендер барабанов
         function generateStripHTML(c) {
             let h='';
             for(let i=0;i<c;i++) {
-                const id = SYMBOLS_ID[Math.floor(Math.random() * SYMBOLS_ID.length)];
-                h+=`<div class="symbol"><img src="${ASSETS[id]}"></div>`;
+                const s = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+                if(s.type === 'img') h+=`<div class="symbol"><img src="${s.val}"></div>`;
+                else h+=`<div class="symbol">${s.val}</div>`;
             }
             return h;
         }
@@ -561,25 +553,27 @@
             startSound();
 
             let res = [];
-            // Шанс 35% на выигрыш (пара или тройка)
+            // 35% шанс
             if(Math.random()<0.35) {
-                let s = SYMBOLS_ID[Math.floor(Math.random()*SYMBOLS_ID.length)];
-                // 50/50 что будет тройка или пара
+                let s = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
+                // 50% пара, 50% тройка
                 res = Math.random() > 0.5
-                    ? [s, s, SYMBOLS_ID[Math.floor(Math.random()*SYMBOLS_ID.length)]] // Пара
-                    : [s, s, s]; // Тройка
+                    ? [s, s, SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]]
+                    : [s, s, s];
             } else {
-                // Рандом
-                for(let i=0; i<3; i++) res.push(SYMBOLS_ID[Math.floor(Math.random()*SYMBOLS_ID.length)]);
+                for(let i=0; i<3; i++) res.push(SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]);
             }
 
             reels.forEach((r, i) => {
-                let arr=[]; for(let k=0;k<20;k++) arr.push(SYMBOLS_ID[Math.floor(Math.random()*SYMBOLS_ID.length)]);
-                arr[18] = res[i]; // Целевой символ
+                let arr=[]; for(let k=0;k<20;k++) arr.push(SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]);
+                arr[18] = res[i]; // WIN
 
-                r.innerHTML = arr.map(id => `<div class="symbol ${Math.random()>0.5?'blur':''}"><img src="${ASSETS[id]}"></div>`).join('');
+                r.innerHTML = arr.map(s => {
+                    if(s.type === 'img') return `<div class="symbol ${Math.random()>0.5?'blur':''}"><img src="${s.val}"></div>`;
+                    return `<div class="symbol ${Math.random()>0.5?'blur':''}">${s.val}</div>`;
+                }).join('');
 
-                r.children[18].classList.remove('blur'); // Снимаем блюр с результата
+                r.children[18].classList.remove('blur');
                 r.style.transition='none'; r.style.transform='translateY(0px)'; r.offsetHeight;
                 r.style.transition=`transform ${2+i*0.5}s cubic-bezier(0.15,0.1,0.25,1)`;
                 r.style.transform=`translateY(${-(18*SYMBOL_HEIGHT)+40}px)`;
@@ -593,14 +587,14 @@
             document.querySelectorAll('.symbol').forEach(e=>e.classList.remove('blur'));
             let mul = 0;
 
-            if(s1===s2 && s2===s3) {
-                mul = MULTIPLIERS[s1];
+            if(s1.id===s2.id && s2.id===s3.id) {
+                mul = MULTIPLIERS[s1.id];
                 showStatus(`ДЖЕКПОТ! x${mul}`, '#0f0');
                 payline.style.display='block';
             }
-            else if(s1===s2||s2===s3||s1===s3) {
-                let p = (s1===s2) ? s1 : (s2===s3 ? s2 : s1);
-                mul = Math.max(1, MULTIPLIERS[p] * 0.5);
+            else if(s1.id===s2.id || s2.id===s3.id || s1.id===s3.id) {
+                let p = (s1.id===s2.id) ? s1 : (s2.id===s3.id ? s2 : s1);
+                mul = Math.max(1, MULTIPLIERS[p.id] * 0.5);
                 showStatus(`ВЫИГРЫШ! x${mul}`, '#ffd700');
             }
 
