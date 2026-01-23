@@ -266,27 +266,28 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // === НАСТРОЙКИ СИМВОЛОВ ===
+        // === НАСТРОЙКИ СИМВОЛОВ (ОБНОВЛЕНЫ) ===
         const SYMBOLS = [
             { id: 'mel', type: 'img', val: 'https://ltdfoto.ru/images/2026/01/21/8580fcabde66c0c835050b7188ee0e94-1.jpg' },
             { id: '777', type: 'text', val: '7️⃣' },
-            { id: 'bag', type: 'text', val: '💰' },
             { id: 'gem', type: 'text', val: '💎' },
+            { id: 'bag', type: 'text', val: '💰' },
+            { id: 'cherry', type: 'text', val: '🍒' },
             { id: 'bell', type: 'text', val: '🔔' },
-            { id: 'lemon', type: 'text', val: '🍋' },
-            { id: 'cherry', type: 'text', val: '🍒' }
+            { id: 'lemon', type: 'text', val: '🍋' }
         ];
 
         const SYMBOL_HEIGHT = 80;
 
+        // НОВЫЕ МНОЖИТЕЛИ
         const MULTIPLIERS = {
             'mel': 50,
-            '777': 10,
+            '777': 25,
+            'gem': 10,
             'bag': 5,
-            'gem': 3,
-            'bell': 2.5,
-            'lemon': 1.5,
-            'cherry': 0.5
+            'cherry': 3,
+            'bell': 2,
+            'lemon': 1
         };
 
         const FAKE_USERS = [
@@ -559,6 +560,7 @@
             startSound();
 
             let res = [];
+            // 35% шанс на выигрыш
             if(Math.random()<0.35) {
                 let s = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
                 res = Math.random() > 0.5
