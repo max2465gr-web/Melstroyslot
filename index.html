@@ -266,7 +266,7 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // === НАСТРОЙКИ СИМВОЛОВ (ОБНОВЛЕНЫ) ===
+        // === НАСТРОЙКИ СИМВОЛОВ ===
         const SYMBOLS = [
             { id: 'mel', type: 'img', val: 'https://ltdfoto.ru/images/2026/01/21/8580fcabde66c0c835050b7188ee0e94-1.jpg' },
             { id: '777', type: 'text', val: '7️⃣' },
@@ -279,7 +279,6 @@
 
         const SYMBOL_HEIGHT = 80;
 
-        // НОВЫЕ МНОЖИТЕЛИ
         const MULTIPLIERS = {
             'mel': 50,
             '777': 25,
@@ -288,6 +287,15 @@
             'cherry': 3,
             'bell': 2,
             'lemon': 1
+        };
+
+        // === ССЫЛКИ НА ЗВУКИ МЕЛСТРОЯ (Если есть) ===
+        // Если оставить пустым '', будет играть синтезированный звук.
+        // Если вставите ссылку на mp3, будет играть она.
+        const MELL_SOUNDS = {
+            1: '', //https://drive.google.com/file/d/1DRcoaHk4Sgs6TTsRMgSNFdWivv4csW5A/view?usp=drive_link
+            2: '', // Звук для 2 мелстроев
+            3: ''  // Звук для 3 мелстроев (Джекпот)
         };
 
         const FAKE_USERS = [
@@ -515,18 +523,44 @@
         }
         function playRatchet() { playFilteredNoise(2000+Math.random()*500, 0.05, 0.3); }
         function playClunk() { playTone(60,'triangle',0.2,0.4); playFilteredNoise(800,0.1,0.3); }
+
+        // --- ОБНОВЛЕННАЯ ЛОГИКА ЗВУКОВ ---
         function startSound() {
             if(isMuted || audioCtx.state==='suspended') { if(!isMuted) audioCtx.resume(); return; }
-            let n=0; spinInterval=setInterval(()=>{
-                if(isMuted) { clearInterval(spinInterval); return; }
-                playTone(400+(n%3)*100,'square',0.08,0.05); n++;
-            },80);
+            // Убрали звук вращения (spinInterval), остался только resume контекста
         }
-        function stopSound() { clearInterval(spinInterval); if(!isMuted) playTone(800,'sine',0.2,0.1); }
+        function stopSound() {
+            // Пусто, так как нет цикличного звука
+        }
         function playWin(amt) {
             if(isMuted) return;
             [523,659,783].forEach((n,i)=>setTimeout(()=>playTone(n,'sine',0.4),i*150));
             if(amt>=100) for(let k=0;k<10;k++) setTimeout(()=>playFilteredNoise(2000+Math.random()*1000,0.05,0.1),600+k*60);
+        }
+
+        // Звуки для Мелстроя
+        function playMellstroySound(count) {
+            if(isMuted) return;
+
+            // Если есть URL, играем его
+            if (MELL_SOUNDS[count]) {
+                const audio = new Audio(MELL_SOUNDS[count]);
+                audio.play().catch(e => console.log('Audio play failed', e));
+                return;
+            }
+
+            // Иначе синтезируем "голос"
+            if (count === 1) {
+                playTone(300, 'sawtooth', 0.2, 0.2); // Короткий
+            } else if (count === 2) {
+                playTone(300, 'sawtooth', 0.1, 0.2); // Двойной
+                setTimeout(() => playTone(400, 'sawtooth', 0.2, 0.2), 150);
+            } else if (count === 3) {
+                // Победный крик
+                playTone(400, 'sawtooth', 0.1, 0.3);
+                setTimeout(() => playTone(500, 'sawtooth', 0.1, 0.3), 100);
+                setTimeout(() => playTone(600, 'sawtooth', 0.4, 0.3), 200);
+            }
         }
 
         function generateStripHTML(c) {
@@ -591,8 +625,19 @@
         function check(res, bet) {
             const [s1, s2, s3] = res;
             document.querySelectorAll('.symbol').forEach(e=>e.classList.remove('blur'));
-            let mul = 0;
 
+            // 1. Проверяем Мелстроя (ЗВУК)
+            let melCount = 0;
+            if (s1.id === 'mel') melCount++;
+            if (s2.id === 'mel') melCount++;
+            if (s3.id === 'mel') melCount++;
+
+            if (melCount > 0) {
+                playMellstroySound(melCount);
+            }
+
+            // 2. Логика выигрыша
+            let mul = 0;
             if(s1.id===s2.id && s2.id===s3.id) {
                 mul = MULTIPLIERS[s1.id];
                 showStatus(`ДЖЕКПОТ! x${mul}`, '#0f0');
