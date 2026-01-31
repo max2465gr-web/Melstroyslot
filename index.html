@@ -36,29 +36,24 @@
             50% { opacity: 1; transform: scale(1.2); }
         }
 
-        /* ПАНЕЛИ КНОПОК */
+        /* КНОПКИ */
         .top-right-panel { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 20; }
         .bottom-right-panel { position: absolute; bottom: 20px; right: 20px; z-index: 20; }
 
-        /* СТИЛЬ КНОПОК */
         .icon-btn {
             width: 50px; height: 50px; border: 2px solid #fff; border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
             font-size: 24px; cursor: pointer; transition: transform 0.2s;
             box-shadow: 0 0 10px rgba(0,0,0,0.5); user-select: none;
-            position: relative; overflow: hidden;
         }
         .icon-btn:active { transform: scale(0.9); }
 
         .stats-btn { background: linear-gradient(135deg, #ffd700, #ff8c00); }
         .stats-btn::after { content: '🏆'; }
-
         .reset-btn { background: linear-gradient(135deg, #ff4d4d, #990000); }
         .reset-btn::after { content: '🔄'; }
-
         .info-btn { background: linear-gradient(135deg, #3498db, #2980b9); }
         .info-btn::after { content: 'ℹ️'; }
-
         .sound-btn { background: linear-gradient(135deg, #00f2ff, #0078ff); }
         .sound-btn.muted { background: linear-gradient(135deg, #555, #333); filter: grayscale(1); }
 
@@ -193,7 +188,6 @@
     <div class="star" style="top: 20%; right: 15%;">★</div>
     <div class="star" style="top: 80%; left: 20%;">★</div>
 
-    <!-- ПРАВАЯ ПАНЕЛЬ -->
     <div class="top-right-panel">
         <div class="icon-btn info-btn" onclick="openInfo()"></div>
         <div class="icon-btn reset-btn" onclick="resetBalance()"></div>
@@ -299,7 +293,6 @@
             2: 'https://files.catbox.moe/ow0gj3.mp3',
             3: 'https://files.catbox.moe/ad39v6.mp3'
         };
-
         const WELCOME_SOUND_URL = 'https://files.catbox.moe/t1g2o0.mp3';
 
         const audioCache = {};
@@ -375,41 +368,52 @@
             renderPayouts();
             showStatus("ТЯНИ РЫЧАГ!", "#fff");
 
-            document.addEventListener('touchstart', unlockAudio, { once: true });
-            document.addEventListener('click', unlockAudio, { once: true });
+            // Фикс для мобилок: Разблокируем аудио при первом касании
+            const unlockHandler = () => {
+                unlockAudio();
+                document.removeEventListener('touchstart', unlockHandler);
+                document.removeEventListener('click', unlockHandler);
+            };
+            document.addEventListener('touchstart', unlockHandler);
+            document.addEventListener('click', unlockHandler);
         }
 
+        // === АУДИО СИСТЕМА ===
         function preloadSounds() {
-            for (const [key, url] of Object.entries(MELL_SOUNDS)) {
-                const a = new Audio(url);
+            // Кэшируем все звуки
+            [...Object.values(MELL_SOUNDS), WELCOME_SOUND_URL].forEach(url => {
+                const a = new Audio();
+                a.src = url;
                 a.preload = 'auto';
-                audioCache[key] = a;
-            }
-            const w = new Audio(WELCOME_SOUND_URL);
-            w.preload = 'auto';
-            audioCache['welcome'] = w;
+                a.volume = 1.0;
+                audioCache[url] = a;
+            });
         }
 
         function unlockAudio() {
+            // 1. Активируем Web Audio API
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
+
+            // 2. Играем приветствие
             if (!isMuted) {
-                const welcome = audioCache['welcome'];
+                const welcome = audioCache[WELCOME_SOUND_URL];
                 if(welcome) {
-                    welcome.volume = 0.5;
-                    welcome.play().catch(e => console.log(e));
+                    welcome.currentTime = 0;
+                    welcome.play().catch(() => {});
                 }
             }
         }
 
-        function playCachedSound(key, vol = 1.0) {
+        function playSound(url) {
             if (isMuted) return;
-            const audio = audioCache[key];
+            const audio = audioCache[url];
             if (audio) {
-                audio.volume = vol;
                 audio.currentTime = 0;
-                audio.play().catch(e => console.log('Playback failed', e));
+                audio.play().catch(e => console.log(e));
+            } else {
+                new Audio(url).play().catch(() => {});
             }
         }
 
@@ -577,10 +581,8 @@
         }
 
         function playMellstroySound(count) {
-            if(isMuted) return;
             if (MELL_SOUNDS[count]) {
-                const audio = new Audio(MELL_SOUNDS[count]);
-                audio.play().catch(e => console.log('Audio play failed', e));
+                playSound(MELL_SOUNDS[count]);
             }
         }
 
