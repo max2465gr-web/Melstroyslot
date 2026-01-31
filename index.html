@@ -289,13 +289,15 @@
             'lemon': 1
         };
 
-        // === ССЫЛКИ НА ЗВУКИ МЕЛСТРОЯ ===
-        // Вставьте сюда ссылки на MP3
+        // === ВАШИ ЗВУКИ ===
         const MELL_SOUNDS = {
-            1: 'https://files.catbox.moe/2hcsh1.mp3',
-            2: '',
-            3: ''
+            1: 'https://files.catbox.moe/2hcsh1.mp3', // 1 Мелстрой
+            2: 'https://files.catbox.moe/ow0gj3.mp3', // 2 Мелстроя
+            3: 'https://files.catbox.moe/zbsipa.mp3'  // 3 Мелстроя
         };
+
+        // ЗВУК ВХОДА (Приветствие)
+        const WELCOME_SOUND_URL = 'https://files.catbox.moe/2b3ig0.mp3';
 
         const FAKE_USERS = [
             { name: "Melstroy", balance: 50000000, maxWin: 12000000 },
@@ -366,6 +368,30 @@
             loadMuteState();
             renderPayouts();
             showStatus("ТЯНИ РЫЧАГ!", "#fff");
+
+            // Запуск приветственного звука
+            playWelcomeSound();
+        }
+
+        function playWelcomeSound() {
+            if(isMuted) return;
+            // Пробуем запустить
+            const audio = new Audio(WELCOME_SOUND_URL);
+            audio.volume = 0.5; // Громкость 50%
+            const promise = audio.play();
+
+            if (promise !== undefined) {
+                promise.catch(error => {
+                    // Если браузер запретил автоплей, ждем первого клика
+                    const playOnTouch = () => {
+                        audio.play();
+                        document.removeEventListener('click', playOnTouch);
+                        document.removeEventListener('touchstart', playOnTouch);
+                    };
+                    document.addEventListener('click', playOnTouch);
+                    document.addEventListener('touchstart', playOnTouch);
+                });
+            }
         }
 
         function renderPayouts() {
@@ -523,15 +549,14 @@
         function playRatchet() { playFilteredNoise(2000+Math.random()*500, 0.05, 0.3); }
         function playClunk() { playTone(60,'triangle',0.2,0.4); playFilteredNoise(800,0.1,0.3); }
         function startSound() {
-            if(isMuted || audioCtx.state==='suspended') { if(!isMuted) audioCtx.resume(); return; }
-            // Молчание при вращении
+            // МОЛЧАНИЕ ПРИ ВРАЩЕНИИ
         }
         function stopSound() {
-            // Молчание при остановке
+            // МОЛЧАНИЕ ПРИ ОСТАНОВКЕ
         }
         function playWin(amt) {
+            // ТУТ ТОЛЬКО ЗВУК МОНЕТ, ЕСЛИ НЕТ МЕЛСТРОЯ
             if(isMuted) return;
-            // Стандартный звук победы (можно удалить, если не нужен)
             if(amt>=100) for(let k=0;k<10;k++) setTimeout(()=>playFilteredNoise(2000+Math.random()*1000,0.05,0.1),600+k*60);
         }
 
