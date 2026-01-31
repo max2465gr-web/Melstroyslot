@@ -289,13 +289,12 @@
             'lemon': 1
         };
 
-        // === ССЫЛКИ НА ЗВУКИ МЕЛСТРОЯ (Если есть) ===
-        // Если оставить пустым '', будет играть синтезированный звук.
-        // Если вставите ссылку на mp3, будет играть она.
+        // === ССЫЛКИ НА ЗВУКИ МЕЛСТРОЯ ===
+        // Вставьте сюда ссылки на MP3
         const MELL_SOUNDS = {
-            1: '', //https://screenapp.io/app/v/89hZSGeUc2
-            2: '', // Звук для 2 мелстроев
-            3: ''  // Звук для 3 мелстроев (Джекпот)
+            1: '',
+            2: '',
+            3: ''
         };
 
         const FAKE_USERS = [
@@ -523,43 +522,25 @@
         }
         function playRatchet() { playFilteredNoise(2000+Math.random()*500, 0.05, 0.3); }
         function playClunk() { playTone(60,'triangle',0.2,0.4); playFilteredNoise(800,0.1,0.3); }
-
-        // --- ОБНОВЛЕННАЯ ЛОГИКА ЗВУКОВ ---
         function startSound() {
             if(isMuted || audioCtx.state==='suspended') { if(!isMuted) audioCtx.resume(); return; }
-            // Убрали звук вращения (spinInterval), остался только resume контекста
+            // Молчание при вращении
         }
         function stopSound() {
-            // Пусто, так как нет цикличного звука
+            // Молчание при остановке
         }
         function playWin(amt) {
             if(isMuted) return;
-            [523,659,783].forEach((n,i)=>setTimeout(()=>playTone(n,'sine',0.4),i*150));
+            // Стандартный звук победы (можно удалить, если не нужен)
             if(amt>=100) for(let k=0;k<10;k++) setTimeout(()=>playFilteredNoise(2000+Math.random()*1000,0.05,0.1),600+k*60);
         }
 
         // Звуки для Мелстроя
         function playMellstroySound(count) {
             if(isMuted) return;
-
-            // Если есть URL, играем его
             if (MELL_SOUNDS[count]) {
                 const audio = new Audio(MELL_SOUNDS[count]);
                 audio.play().catch(e => console.log('Audio play failed', e));
-                return;
-            }
-
-            // Иначе синтезируем "голос"
-            if (count === 1) {
-                playTone(300, 'sawtooth', 0.2, 0.2); // Короткий
-            } else if (count === 2) {
-                playTone(300, 'sawtooth', 0.1, 0.2); // Двойной
-                setTimeout(() => playTone(400, 'sawtooth', 0.2, 0.2), 150);
-            } else if (count === 3) {
-                // Победный крик
-                playTone(400, 'sawtooth', 0.1, 0.3);
-                setTimeout(() => playTone(500, 'sawtooth', 0.1, 0.3), 100);
-                setTimeout(() => playTone(600, 'sawtooth', 0.4, 0.3), 200);
             }
         }
 
@@ -594,7 +575,6 @@
             startSound();
 
             let res = [];
-            // 35% шанс на выигрыш
             if(Math.random()<0.35) {
                 let s = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
                 res = Math.random() > 0.5
@@ -626,17 +606,12 @@
             const [s1, s2, s3] = res;
             document.querySelectorAll('.symbol').forEach(e=>e.classList.remove('blur'));
 
-            // 1. Проверяем Мелстроя (ЗВУК)
             let melCount = 0;
             if (s1.id === 'mel') melCount++;
             if (s2.id === 'mel') melCount++;
             if (s3.id === 'mel') melCount++;
+            if (melCount > 0) playMellstroySound(melCount);
 
-            if (melCount > 0) {
-                playMellstroySound(melCount);
-            }
-
-            // 2. Логика выигрыша
             let mul = 0;
             if(s1.id===s2.id && s2.id===s3.id) {
                 mul = MULTIPLIERS[s1.id];
