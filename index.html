@@ -1,4 +1,4 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -38,7 +38,6 @@
 
         /* ПАНЕЛИ КНОПОК */
         .top-right-panel { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 20; }
-        .top-left-panel { position: absolute; top: 20px; left: 20px; z-index: 20; }
         .bottom-right-panel { position: absolute; bottom: 20px; right: 20px; z-index: 20; }
 
         /* СТИЛЬ КНОПОК */
@@ -62,27 +61,6 @@
 
         .sound-btn { background: linear-gradient(135deg, #00f2ff, #0078ff); }
         .sound-btn.muted { background: linear-gradient(135deg, #555, #333); filter: grayscale(1); }
-
-        /* КНОПКА РУЛЕТКИ (СЛЕВА) */
-        .roulette-btn {
-            width: 60px; height: 60px;
-            border: 3px solid #ffd700; border-radius: 50%;
-            background: conic-gradient(
-                #008000 0deg 18deg, #e74c3c 18deg 36deg, #2c3e50 36deg 54deg, #e74c3c 54deg 72deg,
-                #2c3e50 72deg 90deg, #e74c3c 90deg 108deg, #2c3e50 108deg 126deg, #e74c3c 126deg 144deg,
-                #2c3e50 144deg 162deg, #e74c3c 162deg 180deg, #2c3e50 180deg 198deg, #e74c3c 198deg 216deg,
-                #2c3e50 216deg 234deg, #e74c3c 234deg 252deg, #2c3e50 252deg 270deg, #e74c3c 270deg 288deg,
-                #2c3e50 288deg 306deg, #e74c3c 306deg 324deg, #2c3e50 324deg 342deg, #e74c3c 342deg 360deg
-            );
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.8), inset 0 0 10px rgba(0,0,0,0.5);
-            animation: spin-slow 10s linear infinite;
-        }
-        .roulette-btn::before {
-            content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 12px; height: 12px; background: radial-gradient(circle, #ffd700, #b8860b);
-            border-radius: 50%; border: 2px solid #fff; z-index: 2;
-        }
-        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         .neon-sign {
             font-size: 36px; color: #fff; text-transform: uppercase; letter-spacing: 2px;
@@ -124,8 +102,15 @@
         .reel:last-child { border-right: none; }
         .reel-strip { position: absolute; top: 0; left: 0; width: 100%; }
 
-        .symbol { height: 80px; display: flex; align-items: center; justify-content: center; font-size: 45px; }
-        .symbol img { width: 65px; height: 65px; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
+        .symbol {
+            height: 80px; display: flex; align-items: center; justify-content: center; font-size: 45px;
+        }
+
+        .symbol img {
+            width: 65px; height: 65px; object-fit: contain;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+        }
+
         .blur { filter: blur(3px); }
 
         .controls-panel { margin-top: 15px; width: 100%; display: flex; flex-direction: column; gap: 10px; }
@@ -195,38 +180,6 @@
         .pay-sym img { width: 40px; height: 40px; }
         .pay-sym-emoji { font-size: 30px; }
 
-        /* ИГРА В РУЛЕТКУ ВНУТРИ МОДАЛКИ */
-        .roulette-game-container {
-            display: flex; flex-direction: column; align-items: center; padding: 20px;
-        }
-        .wheel-container {
-            width: 200px; height: 200px; border-radius: 50%; border: 5px solid #d4af37;
-            position: relative; overflow: hidden; margin-bottom: 20px;
-            transition: transform 3s cubic-bezier(0.25, 0.1, 0.25, 1);
-        }
-        .wheel {
-            width: 100%; height: 100%;
-            background: conic-gradient(
-                green 0deg 18deg, red 18deg 180deg, black 180deg 342deg, red 342deg 360deg
-            ); /* Упрощенная рулетка */
-            border-radius: 50%;
-        }
-        .wheel-arrow {
-            position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
-            width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 20px solid #fff;
-            z-index: 10;
-        }
-        .roulette-controls {
-            display: flex; gap: 10px; margin-bottom: 10px;
-        }
-        .r-btn {
-            padding: 10px 20px; border: none; border-radius: 5px; color: #fff; font-weight: bold; cursor: pointer;
-        }
-        .btn-red { background: #e74c3c; }
-        .btn-black { background: #2c3e50; }
-        .btn-green { background: #27ae60; }
-        .r-result { color: #fff; font-size: 18px; height: 20px; margin-top: 10px; }
-
         #status {
             position: fixed; bottom: 20px; font-size: 20px; color: #fff; text-shadow: 0 2px 4px #000;
             z-index: 10; background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 20px; opacity: 0; transition: opacity 0.3s; text-align: center;
@@ -239,11 +192,6 @@
     <div class="star" style="top: 10%; left: 10%;">★</div>
     <div class="star" style="top: 20%; right: 15%;">★</div>
     <div class="star" style="top: 80%; left: 20%;">★</div>
-
-    <!-- КНОПКА РУЛЕТКИ (СЛЕВА) -->
-    <div class="top-left-panel">
-        <div class="icon-btn roulette-btn" onclick="openRoulette()"></div>
-    </div>
 
     <!-- ПРАВАЯ ПАНЕЛЬ -->
     <div class="top-right-panel">
@@ -320,27 +268,6 @@
         </div>
     </div>
 
-    <!-- МОДАЛ: РУЛЕТКА -->
-    <div class="modal-overlay" id="rouletteModal">
-        <div class="modal-content">
-            <div class="close-btn" onclick="closeModal('rouletteModal')">&times;</div>
-            <div class="modal-header"><div class="modal-title">Рулетка</div></div>
-            <div class="roulette-game-container">
-                <div class="wheel-container">
-                    <div class="wheel-arrow"></div>
-                    <div class="wheel" id="rouletteWheel"></div>
-                </div>
-                <div style="color:#fff; margin-bottom:10px;">Ставка: <span id="rBet">50</span></div>
-                <div class="roulette-controls">
-                    <button class="r-btn btn-red" onclick="spinRoulette('red')">КРАСНОЕ (x2)</button>
-                    <button class="r-btn btn-green" onclick="spinRoulette('green')">ЗЕРО (x14)</button>
-                    <button class="r-btn btn-black" onclick="spinRoulette('black')">ЧЕРНОЕ (x2)</button>
-                </div>
-                <div class="r-result" id="rouletteResult"></div>
-            </div>
-        </div>
-    </div>
-
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
@@ -373,7 +300,6 @@
             3: 'https://files.catbox.moe/ad39v6.mp3'
         };
 
-        // НОВАЯ ССЫЛКА ВХОДА
         const WELCOME_SOUND_URL = 'https://files.catbox.moe/t1g2o0.mp3';
 
         const audioCache = {};
@@ -559,67 +485,6 @@
         function openStats() { document.getElementById('statsModal').style.display = 'flex'; renderLeaderboard(); }
         function openInfo() { document.getElementById('infoModal').style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-        // === ЛОГИКА РУЛЕТКИ ===
-        function openRoulette() {
-            document.getElementById('rouletteModal').style.display = 'flex';
-            document.getElementById('rBet').textContent = formatNumber(parseNumber(betInput.value));
-        }
-
-        let isRouletteSpinning = false;
-        function spinRoulette(color) {
-            if(isRouletteSpinning) return;
-            const bet = parseNumber(betInput.value);
-            if(balance < bet) {
-                document.getElementById('rouletteResult').textContent = "Недостаточно денег!";
-                return;
-            }
-
-            isRouletteSpinning = true;
-            balance -= bet;
-            saveProgress();
-            updateUI();
-
-            const wheel = document.getElementById('rouletteWheel');
-            const resultEl = document.getElementById('rouletteResult');
-            resultEl.textContent = "Крутим...";
-
-            // Простая логика: 48% красный, 48% черный, 4% зеленый
-            const rand = Math.random() * 100;
-            let resultColor = 'black';
-            let degree = 0;
-
-            if (rand < 4) { resultColor = 'green'; degree = 0; } // 0 deg
-            else if (rand < 52) { resultColor = 'red'; degree = 20; } // random red sector
-            else { resultColor = 'black'; degree = 40; } // random black sector
-
-            // Добавляем много оборотов
-            const finalDeg = 3600 + degree + Math.floor(Math.random()*20 - 10);
-
-            wheel.style.transition = 'transform 3s cubic-bezier(0.25, 0.1, 0.25, 1)';
-            wheel.style.transform = `rotate(${finalDeg}deg)`;
-
-            setTimeout(() => {
-                let win = 0;
-                if (color === resultColor) {
-                    if(color === 'green') win = bet * 14;
-                    else win = bet * 2;
-                    balance += win;
-                    saveProgress();
-                    updateUI();
-                    resultEl.textContent = `ВЫИГРЫШ! +${formatNumber(win)}`;
-                    resultEl.style.color = '#0f0';
-                    playWin(win);
-                } else {
-                    resultEl.textContent = "ПРОИГРЫШ";
-                    resultEl.style.color = '#f00';
-                }
-
-                isRouletteSpinning = false;
-                wheel.style.transition = 'none';
-                wheel.style.transform = 'rotate(0deg)';
-            }, 3000);
-        }
 
         function switchTab(tab) {
             currentTab = tab;
