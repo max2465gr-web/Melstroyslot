@@ -85,7 +85,6 @@
         <div class="lever-container"><div class="lever-handle" id="leverHandle"><div class="lever-stick"></div><div class="lever-knob" id="leverKnob"></div></div></div>
     </div>
     <div id="status">ЗАГРУЗКА...</div>
-    <!-- MODALS -->
     <div class="modal-overlay" id="statsModal"><div class="modal-content"><div class="close-btn" onclick="closeModal('statsModal')">&times;</div><div class="modal-header"><div class="modal-title">Топ Игроков</div></div><div class="tabs"><div class="tab active" onclick="switchTab('balance')" id="tabBalance">💰 Богачи</div><div class="tab" onclick="switchTab('wins')" id="tabWins">🎰 Рекорды</div></div><div class="leaderboard-list" id="lbList"></div></div></div>
     <div class="modal-overlay" id="infoModal"><div class="modal-content"><div class="close-btn" onclick="closeModal('infoModal')">&times;</div><div class="modal-header"><div class="modal-title">Выплаты</div></div><div class="payout-list" id="payoutList"></div></div></div>
 
@@ -100,13 +99,20 @@
         const MULTIPLIERS = { 'mel': 50, '777': 25, 'gem': 10, 'bag': 5, 'cherry': 3, 'bell': 2, 'lemon': 1 };
         const MELL_SOUNDS = { 1: 'https://files.catbox.moe/2hcsh1.mp3', 2: 'https://files.catbox.moe/ow0gj3.mp3', 3: 'https://files.catbox.moe/ad39v6.mp3' };
         const WELCOME_SOUND_URL = 'https://files.catbox.moe/t1g2o0.mp3';
-        
-        // Аудио контекст (для механики) + Кэш (для музыки)
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        let audioCtx = new AudioContext();
-        let noiseBuffer = null;
-        let audioCache = {};
-        let isAudioUnlocked = false;
+        const audioCache = {};
+
+        // === БОТЫ (Загружаются из памяти, если есть) ===
+        let FAKE_USERS = [
+            { name: "Melstroy", balance: 50000000, maxWin: 12000000 },
+            { name: "Pavel Durov", balance: 10000000, maxWin: 5000000 },
+            { name: "Elon Musk", balance: 8000000, maxWin: 2500000 },
+            { name: "Buster", balance: 2500000, maxWin: 1500000 },
+            { name: "Evelone", balance: 1200000, maxWin: 800000 },
+            { name: "Mellstroy_Fan", balance: 500000, maxWin: 250000 },
+            { name: "Casino King", balance: 300000, maxWin: 120000 },
+            { name: "Lucky Guy", balance: 150000, maxWin: 50000 },
+            { name: "Slot Machine", balance: 50000, maxWin: 20000 }
+        ];
 
         const reels = [ document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3') ];
         const balanceEl = document.getElementById('balance');
@@ -120,21 +126,12 @@
         const payoutList = document.getElementById('payoutList');
 
         let balance = 1000, maxWin = 0, isSpinning = false, currentTab = 'balance', isMuted = false, userId = null;
-
-        const FAKE_USERS = [
-            { name: "Melstroy", balance: 50000000, maxWin: 12000000 },
-            { name: "Pavel Durov", balance: 10000000, maxWin: 5000000 },
-            { name: "Elon Musk", balance: 8000000, maxWin: 2500000 },
-            { name: "Buster", balance: 2500000, maxWin: 1500000 },
-            { name: "Evelone", balance: 1200000, maxWin: 800000 },
-            { name: "Mellstroy_Fan", balance: 500000, maxWin: 250000 },
-            { name: "Casino King", balance: 300000, maxWin: 120000 },
-            { name: "Lucky Guy", balance: 150000, maxWin: 50000 },
-            { name: "Slot Machine", balance: 50000, maxWin: 20000 }
-        ];
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        let noiseBuffer = null;
 
         function init() {
-            preloadSounds();
+            preloadSounds(); createNoiseBuffer();
             reels.forEach(r => { r.innerHTML = generateStripHTML(20); setReelPosition(r, 10); });
             loadLocal();
             updateUI();
@@ -142,82 +139,63 @@
             renderPayouts();
             showStatus("ТЯНИ РЫЧАГ!", "#fff");
             
-            // Глобальный анлок аудио по любому касанию
+            // Запуск симуляции жизни ботов
+            loadBots();
+            setInterval(simulateBots, 3000);
+
             document.addEventListener('touchstart', unlockAudio, { once: true });
             document.addEventListener('click', unlockAudio, { once: true });
         }
 
-        // === АУДИО (ИСПРАВЛЕНО ДЛЯ IOS/ANDROID) ===
-        function preloadSounds() {
-            // Создаем объекты, но не запускаем
-            for (const [key, url] of Object.entries(MELL_SOUNDS)) {
-                audioCache[key] = new Audio(url);
-                audioCache[key].preload = 'auto';
-            }
-            audioCache['welcome'] = new Audio(WELCOME_SOUND_URL);
-            audioCache['welcome'].preload = 'auto';
-        }
-
-        function unlockAudio() {
-            if (isAudioUnlocked) return;
-            
-            // 1. Разблокируем Web Audio API
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            // 2. Разблокируем HTML5 Audio (проигрываем тишину)
-            Object.values(audioCache).forEach(audio => {
-                audio.play().then(() => {
-                    audio.pause();
-                    audio.currentTime = 0;
-                }).catch(() => {});
-            });
-
-            isAudioUnlocked = true;
-            
-            // Играем приветствие, если звук включен
-            if (!isMuted) {
-                const w = audioCache['welcome'];
-                w.volume = 0.5;
-                w.play().catch(() => {});
+        // === СОХРАНЕНИЕ БОТОВ ===
+        function loadBots() {
+            const savedBots = localStorage.getItem('mel_bots');
+            if (savedBots) {
+                FAKE_USERS.length = 0; // Очищаем массив
+                JSON.parse(savedBots).forEach(b => FAKE_USERS.push(b));
             }
         }
 
-        function playSound(key) {
-            if (isMuted) return;
-            const audio = audioCache[key];
-            if (audio) {
-                audio.currentTime = 0;
-                audio.play().catch(e => console.log(e));
+        function simulateBots() {
+            const randomBot = FAKE_USERS[Math.floor(Math.random() * FAKE_USERS.length)];
+            if(Math.random() > 0.6) {
+                const win = Math.floor(Math.random() * 50000);
+                randomBot.balance += win;
+                if(win > randomBot.maxWin) randomBot.maxWin = win;
+            } else {
+                randomBot.balance -= Math.floor(Math.random() * 5000);
+                if(randomBot.balance < 1000) randomBot.balance = 50000; 
+            }
+            // Сохраняем состояние ботов в память
+            localStorage.setItem('mel_bots', JSON.stringify(FAKE_USERS));
+            
+            if(document.getElementById('statsModal').style.display === 'flex') renderLeaderboard();
+        }
+
+        // === ОСТАЛЬНОЙ КОД ===
+        async function saveProgress() {
+            localStorage.setItem('mel_bal', balance); localStorage.setItem('mel_max', maxWin);
+            if(userId) {
+                try {
+                    await fetch('/api/save', {
+                        method: 'POST', headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({uid: userId, balance: balance, max_win: maxWin})
+                    });
+                } catch(e) {}
             }
         }
 
-        // Синтез звуков (Механика)
-        function createNoiseBuffer() {
-            if (noiseBuffer) return;
-            const b = audioCtx.sampleRate; noiseBuffer = audioCtx.createBuffer(1, b, b);
-            const o = noiseBuffer.getChannelData(0); for(let i=0; i<b; i++) o[i] = Math.random()*2-1;
+        async function fetchLeaderboard() {
+            try {
+                const res = await fetch('/api/leaderboard');
+                if(!res.ok) throw new Error();
+                return await res.json();
+            } catch(e) {
+                return { balance: [], wins: [] };
+            }
         }
-        function playTone(f,t,d,v=0.1) {
-            if(isMuted) return; 
-            if(audioCtx.state === 'suspended') audioCtx.resume();
-            const o=audioCtx.createOscillator();const g=audioCtx.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d);
-        }
-        function playFilteredNoise(f,d,v) {
-            if(isMuted) return;
-            if(audioCtx.state === 'suspended') audioCtx.resume();
-            if(!noiseBuffer) createNoiseBuffer();
-            const n=audioCtx.createBufferSource();n.buffer=noiseBuffer;const fl=audioCtx.createBiquadFilter();fl.type='bandpass';fl.frequency.value=f;fl.Q.value=5;const g=audioCtx.createGain();g.gain.setValueAtTime(v,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+d);n.connect(fl);fl.connect(g);g.connect(audioCtx.destination);n.start();
-        }
-        
-        function playRatchet() { playFilteredNoise(2000+Math.random()*500,0.05,0.3); }
-        function playClunk() { playTone(60,'triangle',0.2,0.4); playFilteredNoise(800,0.1,0.3); }
-        function playWinCoins() { if(isMuted)return; for(let k=0;k<10;k++) setTimeout(()=>playFilteredNoise(2000+Math.random()*1000,0.05,0.1),600+k*60); }
 
-        // === ЛОГИКА ===
         function spin() {
-            // Повторный анлок на всякий случай
-            if(!isAudioUnlocked) unlockAudio();
-
             const bet = parseNumber(betInput.value);
             if(balance < bet) { showStatus("НЕДОСТАТОЧНО СРЕДСТВ!", "red"); return; }
             isSpinning = true; balance -= bet; saveProgress(); updateUI(); payline.style.display='none'; statusEl.style.opacity='0';
@@ -243,8 +221,7 @@
         function check(res, bet) {
             const [s1, s2, s3] = res;
             let melCount = 0; if(s1.id==='mel')melCount++; if(s2.id==='mel')melCount++; if(s3.id==='mel')melCount++;
-            
-            if(melCount > 0) playSound(melCount); // Играем Мелстроя
+            if(melCount>0) playMellstroySound(melCount);
 
             let mul = 0;
             if(s1.id===s2.id && s2.id===s3.id) { mul=MULTIPLIERS[s1.id]; showStatus(`ДЖЕКПОТ! x${mul}`, '#0f0'); payline.style.display='block'; }
@@ -252,27 +229,12 @@
 
             if(mul > 0) {
                 let win = Math.floor(bet * mul); balance += win; if(win>maxWin) maxWin=win;
-                saveProgress(); 
-                if(melCount === 0) playWinCoins(); // Монетки, если не Мел
+                saveProgress(); if(melCount===0) playWin(win);
                 setTimeout(()=>showStatus(`+${formatNumber(win)}`, '#fff'), 1000);
             } else { showStatus("ПОПРОБУЙ ЕЩЕ", "#ccc"); }
             updateUI();
         }
 
-        function loadLocal() {
-            if(tg.CloudStorage) {
-                tg.CloudStorage.getItem('mel_bal', (e,v)=>{if(!e&&v)balance=parseInt(v);updateUI();});
-                tg.CloudStorage.getItem('mel_max', (e,v)=>{if(!e&&v)maxWin=parseInt(v);});
-            }
-            const lB = localStorage.getItem('mel_bal'); if(lB) balance = parseInt(lB);
-            const lM = localStorage.getItem('mel_max'); if(lM) maxWin = parseInt(lM);
-            if(balance < 10) { balance = 1000; saveProgress(); }
-        }
-        function saveProgress() {
-            localStorage.setItem('mel_bal', balance); localStorage.setItem('mel_max', maxWin);
-            if(tg.CloudStorage) { tg.CloudStorage.setItem('mel_bal', balance.toString()); tg.CloudStorage.setItem('mel_max', maxWin.toString()); }
-        }
-        
         function formatNumber(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
         function parseNumber(s) { return parseInt(s.replace(/,/g, '')) || 0; }
         function updateUI() { balanceEl.textContent = formatNumber(balance); }
@@ -281,8 +243,14 @@
         function showStatus(t,c='#fff') { statusEl.textContent=t; statusEl.style.color=c; statusEl.style.opacity='1'; setTimeout(()=>{if(!isSpinning)statusEl.style.opacity='0';},3000); }
         function resetBalance() { if(confirm("Сброс?")) { balance=1000; saveProgress(); updateUI(); } }
         
-        async function openStats() { document.getElementById('statsModal').style.display='flex'; renderLeaderboard(); }
+        async function openStats() {
+            document.getElementById('statsModal').style.display='flex';
+            lbList.innerHTML = '<div style="color:#fff;text-align:center">Загрузка...</div>';
+            const data = await fetchLeaderboard();
+            window.lbData = data; renderLeaderboard(data);
+        }
         function renderLeaderboard() {
+            // Берем текущий список фейков + реального юзера
             let list = [...FAKE_USERS];
             list.push({ name: (tg.initDataUnsafe?.user?.first_name || "ВЫ (YOU)"), balance: balance, maxWin: maxWin });
             if (currentTab === 'balance') list.sort((a, b) => b.balance - a.balance); else list.sort((a, b) => b.maxWin - a.maxWin);
@@ -293,23 +261,27 @@
         function openInfo() { document.getElementById('infoModal').style.display='flex'; }
         function closeModal(id) { document.getElementById(id).style.display='none'; }
         function renderPayouts() { let h=''; SYMBOLS.forEach(s=>{ h+=`<div class="payout-row"><span class="pay-sym">${s.type==='img'?`<img src="${s.val}">`:`<span class="pay-sym-emoji">${s.val}</span>`}</span><span class="pay-val">x${MULTIPLIERS[s.id]}</span></div>`; }); payoutList.innerHTML=h; }
-        
-        function loadMuteState() { if(localStorage.getItem('mel_muted')==='true'){isMuted=true;soundBtn.textContent='🔇';soundBtn.classList.add('muted');} }
-        function toggleSound() { 
-            isMuted=!isMuted; 
-            localStorage.setItem('mel_muted',isMuted); 
-            soundBtn.textContent=isMuted?'🔇':'🔊'; 
-            soundBtn.classList.toggle('muted',isMuted); 
-            if(!isMuted) unlockAudio(); // Пытаемся разблокировать при включении
-        }
 
         betInput.addEventListener('input', function() { this.value=formatNumber(parseInt(this.value.replace(/\D/g,''))||0); });
         betInput.addEventListener('change', function() { let v=parseNumber(this.value); if(v<10)v=10; if(v>balance)v=balance; this.value=formatNumber(v); });
         function adjustBet(a) { let c=parseNumber(betInput.value)||10; if(a==='min')c=10; if(a==='max')c=balance>0?balance:10; if(a==='double')c*=2; if(a==='half')c=Math.floor(c/2); if(c<10)c=10; if(c>balance)c=balance; betInput.value=formatNumber(c); }
 
+        function preloadSounds() { for(const[k,u]of Object.entries(MELL_SOUNDS)) audioCache[k]=new Audio(u); audioCache['welcome']=new Audio(WELCOME_SOUND_URL); }
+        function unlockAudio() { if(audioCtx.state==='suspended')audioCtx.resume(); if(!isMuted){const w=audioCache['welcome'];if(w){w.volume=0.5;w.play().catch(()=>{});}} }
+        function playCachedSound(k) { if(isMuted)return; const a=audioCache[k]; if(a){a.currentTime=0;a.play().catch(()=>{});} }
+        function loadMuteState() { if(localStorage.getItem('mel_muted')==='true'){isMuted=true;soundBtn.textContent='🔇';soundBtn.classList.add('muted');} }
+        function toggleSound() { isMuted=!isMuted; localStorage.setItem('mel_muted',isMuted); soundBtn.textContent=isMuted?'🔇':'🔊'; soundBtn.classList.toggle('muted',isMuted); if(!isMuted && audioCtx.state==='suspended')audioCtx.resume(); }
+        function createNoiseBuffer() { if(noiseBuffer)return; const b=audioCtx.sampleRate; noiseBuffer=audioCtx.createBuffer(1,b,b); const o=noiseBuffer.getChannelData(0); for(let i=0;i<b;i++)o[i]=Math.random()*2-1; }
+        function playTone(f,t,d,v=0.1) { if(isMuted||!audioCtx)return; const o=audioCtx.createOscillator();const g=audioCtx.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d); }
+        function playFilteredNoise(f,d,v) { if(isMuted||!audioCtx)return; createNoiseBuffer(); const n=audioCtx.createBufferSource();n.buffer=noiseBuffer;const fl=audioCtx.createBiquadFilter();fl.type='bandpass';fl.frequency.value=f;fl.Q.value=5;const g=audioCtx.createGain();g.gain.setValueAtTime(v,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+d);n.connect(fl);fl.connect(g);g.connect(audioCtx.destination);n.start(); }
+        function playRatchet() { playFilteredNoise(2000+Math.random()*500,0.05,0.3); }
+        function playClunk() { playTone(60,'triangle',0.2,0.4); playFilteredNoise(800,0.1,0.3); }
+        function playWin(a) { if(isMuted)return; if(a>=100)for(let k=0;k<10;k++)setTimeout(()=>playFilteredNoise(2000+Math.random()*1000,0.05,0.1),600+k*60); }
+        function playMellstroySound(c) { if(c===1)playCachedSound(1); if(c===2)playCachedSound(2); if(c===3)playCachedSound(3); }
+
         let isDrag=false, sY=0, lA=0;
         function resetLev() { leverHandle.style.transition='transform .3s'; leverHandle.style.transform='rotate(0deg)'; setTimeout(()=>leverHandle.style.transition='',300); }
-        leverKnob.addEventListener('mousedown', e=>{if(isSpinning)return; isDrag=true; sY=e.clientY; leverKnob.style.cursor='grabbing';});
+        leverKnob.addEventListener('mousedown', e=>{if(isSpinning)return; if(audioCtx.state==='suspended')audioCtx.resume(); isDrag=true; sY=e.clientY; leverKnob.style.cursor='grabbing';});
         document.addEventListener('mousemove', e=>{if(!isDrag)return; let a=Math.min(Math.max((e.clientY-sY)*0.5,0),130); if(Math.abs(a-lA)>15){playRatchet();lA=a;} leverHandle.style.transform=`rotate(${a}deg)`;});
         document.addEventListener('mouseup', e=>{if(!isDrag)return; isDrag=false; if(e.clientY-sY>150){playClunk();setTimeout(spin,250);} resetLev();});
         leverKnob.addEventListener('touchstart', e=>{if(isSpinning)return; isDrag=true; sY=e.touches[0].clientY;}, {passive:false});
