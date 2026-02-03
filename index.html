@@ -101,7 +101,7 @@
         const WELCOME_SOUND_URL = 'https://files.catbox.moe/t1g2o0.mp3';
         const audioCache = {};
 
-        // === БОТЫ (Загружаются из памяти, если есть) ===
+        // === ЖИРНЫЕ БОТЫ ===
         let FAKE_USERS = [
             { name: "Melstroy", balance: 50000000, maxWin: 12000000 },
             { name: "Pavel Durov", balance: 10000000, maxWin: 5000000 },
@@ -141,32 +141,39 @@
             
             // Запуск симуляции жизни ботов
             loadBots();
-            setInterval(simulateBots, 3000);
+            setInterval(simulateBots, 2000); // Каждые 2 сек (быстрее)
 
             document.addEventListener('touchstart', unlockAudio, { once: true });
             document.addEventListener('click', unlockAudio, { once: true });
         }
 
-        // === СОХРАНЕНИЕ БОТОВ ===
+        // === СОХРАНЕНИЕ И СИМУЛЯЦИЯ БОТОВ ===
         function loadBots() {
             const savedBots = localStorage.getItem('mel_bots');
             if (savedBots) {
-                FAKE_USERS.length = 0; // Очищаем массив
-                JSON.parse(savedBots).forEach(b => FAKE_USERS.push(b));
+                // Восстанавливаем состояние, но если фейков меньше 9 (напр. новая версия), дополняем
+                const parsed = JSON.parse(savedBots);
+                if (parsed.length >= FAKE_USERS.length) {
+                    FAKE_USERS.length = 0;
+                    parsed.forEach(b => FAKE_USERS.push(b));
+                }
             }
         }
 
         function simulateBots() {
-            const randomBot = FAKE_USERS[Math.floor(Math.random() * FAKE_USERS.length)];
-            if(Math.random() > 0.6) {
-                const win = Math.floor(Math.random() * 50000);
-                randomBot.balance += win;
-                if(win > randomBot.maxWin) randomBot.maxWin = win;
+            const bot = FAKE_USERS[Math.floor(Math.random() * FAKE_USERS.length)];
+            
+            if(Math.random() > 0.55) { 
+                // КРУПНЫЙ ВЫИГРЫШ (до 50 млн)
+                const win = Math.floor(Math.random() * 10000000); 
+                bot.balance += win;
+                if(win > bot.maxWin) bot.maxWin = win;
             } else {
-                randomBot.balance -= Math.floor(Math.random() * 5000);
-                if(randomBot.balance < 1000) randomBot.balance = 50000; 
+                // КРУПНЫЙ ПРОИГРЫШ (до 500к)
+                bot.balance -= Math.floor(Math.random() * 500000);
+                if(bot.balance < 100000) bot.balance = 5000000; // Ребай на 5 млн
             }
-            // Сохраняем состояние ботов в память
+            
             localStorage.setItem('mel_bots', JSON.stringify(FAKE_USERS));
             
             if(document.getElementById('statsModal').style.display === 'flex') renderLeaderboard();
@@ -235,6 +242,20 @@
             updateUI();
         }
 
+        function loadLocal() {
+            if(tg.CloudStorage) {
+                tg.CloudStorage.getItem('mel_bal', (e,v)=>{if(!e&&v)balance=parseInt(v);updateUI();});
+                tg.CloudStorage.getItem('mel_max', (e,v)=>{if(!e&&v)maxWin=parseInt(v);});
+            }
+            const lB = localStorage.getItem('mel_bal'); if(lB) balance = parseInt(lB);
+            const lM = localStorage.getItem('mel_max'); if(lM) maxWin = parseInt(lM);
+            if(balance < 10) { balance = 1000; saveProgress(); }
+        }
+        function saveProgress() {
+            localStorage.setItem('mel_bal', balance); localStorage.setItem('mel_max', maxWin);
+            if(tg.CloudStorage) { tg.CloudStorage.setItem('mel_bal', balance.toString()); tg.CloudStorage.setItem('mel_max', maxWin.toString()); }
+        }
+        
         function formatNumber(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
         function parseNumber(s) { return parseInt(s.replace(/,/g, '')) || 0; }
         function updateUI() { balanceEl.textContent = formatNumber(balance); }
@@ -243,14 +264,8 @@
         function showStatus(t,c='#fff') { statusEl.textContent=t; statusEl.style.color=c; statusEl.style.opacity='1'; setTimeout(()=>{if(!isSpinning)statusEl.style.opacity='0';},3000); }
         function resetBalance() { if(confirm("Сброс?")) { balance=1000; saveProgress(); updateUI(); } }
         
-        async function openStats() {
-            document.getElementById('statsModal').style.display='flex';
-            lbList.innerHTML = '<div style="color:#fff;text-align:center">Загрузка...</div>';
-            const data = await fetchLeaderboard();
-            window.lbData = data; renderLeaderboard(data);
-        }
+        async function openStats() { document.getElementById('statsModal').style.display='flex'; renderLeaderboard(); }
         function renderLeaderboard() {
-            // Берем текущий список фейков + реального юзера
             let list = [...FAKE_USERS];
             list.push({ name: (tg.initDataUnsafe?.user?.first_name || "ВЫ (YOU)"), balance: balance, maxWin: maxWin });
             if (currentTab === 'balance') list.sort((a, b) => b.balance - a.balance); else list.sort((a, b) => b.maxWin - a.maxWin);
@@ -261,22 +276,24 @@
         function openInfo() { document.getElementById('infoModal').style.display='flex'; }
         function closeModal(id) { document.getElementById(id).style.display='none'; }
         function renderPayouts() { let h=''; SYMBOLS.forEach(s=>{ h+=`<div class="payout-row"><span class="pay-sym">${s.type==='img'?`<img src="${s.val}">`:`<span class="pay-sym-emoji">${s.val}</span>`}</span><span class="pay-val">x${MULTIPLIERS[s.id]}</span></div>`; }); payoutList.innerHTML=h; }
+        
+        function loadMuteState() { if(localStorage.getItem('mel_muted')==='true'){isMuted=true;soundBtn.textContent='🔇';soundBtn.classList.add('muted');} }
+        function toggleSound() { isMuted=!isMuted; localStorage.setItem('mel_muted',isMuted); soundBtn.textContent=isMuted?'🔇':'🔊'; soundBtn.classList.toggle('muted',isMuted); if(!isMuted && audioCtx.state==='suspended')audioCtx.resume(); }
 
         betInput.addEventListener('input', function() { this.value=formatNumber(parseInt(this.value.replace(/\D/g,''))||0); });
         betInput.addEventListener('change', function() { let v=parseNumber(this.value); if(v<10)v=10; if(v>balance)v=balance; this.value=formatNumber(v); });
         function adjustBet(a) { let c=parseNumber(betInput.value)||10; if(a==='min')c=10; if(a==='max')c=balance>0?balance:10; if(a==='double')c*=2; if(a==='half')c=Math.floor(c/2); if(c<10)c=10; if(c>balance)c=balance; betInput.value=formatNumber(c); }
 
+        // === AUDIO ===
         function preloadSounds() { for(const[k,u]of Object.entries(MELL_SOUNDS)) audioCache[k]=new Audio(u); audioCache['welcome']=new Audio(WELCOME_SOUND_URL); }
         function unlockAudio() { if(audioCtx.state==='suspended')audioCtx.resume(); if(!isMuted){const w=audioCache['welcome'];if(w){w.volume=0.5;w.play().catch(()=>{});}} }
         function playCachedSound(k) { if(isMuted)return; const a=audioCache[k]; if(a){a.currentTime=0;a.play().catch(()=>{});} }
-        function loadMuteState() { if(localStorage.getItem('mel_muted')==='true'){isMuted=true;soundBtn.textContent='🔇';soundBtn.classList.add('muted');} }
-        function toggleSound() { isMuted=!isMuted; localStorage.setItem('mel_muted',isMuted); soundBtn.textContent=isMuted?'🔇':'🔊'; soundBtn.classList.toggle('muted',isMuted); if(!isMuted && audioCtx.state==='suspended')audioCtx.resume(); }
         function createNoiseBuffer() { if(noiseBuffer)return; const b=audioCtx.sampleRate; noiseBuffer=audioCtx.createBuffer(1,b,b); const o=noiseBuffer.getChannelData(0); for(let i=0;i<b;i++)o[i]=Math.random()*2-1; }
         function playTone(f,t,d,v=0.1) { if(isMuted||!audioCtx)return; const o=audioCtx.createOscillator();const g=audioCtx.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d); }
         function playFilteredNoise(f,d,v) { if(isMuted||!audioCtx)return; createNoiseBuffer(); const n=audioCtx.createBufferSource();n.buffer=noiseBuffer;const fl=audioCtx.createBiquadFilter();fl.type='bandpass';fl.frequency.value=f;fl.Q.value=5;const g=audioCtx.createGain();g.gain.setValueAtTime(v,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+d);n.connect(fl);fl.connect(g);g.connect(audioCtx.destination);n.start(); }
         function playRatchet() { playFilteredNoise(2000+Math.random()*500,0.05,0.3); }
         function playClunk() { playTone(60,'triangle',0.2,0.4); playFilteredNoise(800,0.1,0.3); }
-        function playWin(a) { if(isMuted)return; if(a>=100)for(let k=0;k<10;k++)setTimeout(()=>playFilteredNoise(2000+Math.random()*1000,0.05,0.1),600+k*60); }
+        function playWinCoins() { if(isMuted)return; for(let k=0;k<10;k++) setTimeout(()=>playFilteredNoise(2000+Math.random()*1000,0.05,0.1),600+k*60); }
         function playMellstroySound(c) { if(c===1)playCachedSound(1); if(c===2)playCachedSound(2); if(c===3)playCachedSound(3); }
 
         let isDrag=false, sY=0, lA=0;
