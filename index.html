@@ -7,295 +7,119 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap');
-
-        :root {
-            --bg-dark: #051e3e;
-            --bg-light: #1e5799;
-            --neon-blue: #00f2ff;
-            --neon-pink: #ff00de;
-            --gold-light: #fceabb;
-            --gold-dark: #f8b500;
-            --gold-shadow: #b06602;
-        }
-
-        body {
-            margin: 0; padding: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(circle at center, var(--bg-light) 0%, var(--bg-dark) 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-family: 'Montserrat', sans-serif; overflow: hidden; user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* ЗВЕЗДЫ */
-        .star {
-            position: absolute; color: #ffd700; font-size: 20px;
-            animation: twinkle 3s infinite ease-in-out; opacity: 0.8; z-index: 0;
-        }
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.4; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.2); }
-        }
-
-        /* КНОПКИ */
+        :root { --bg-dark: #051e3e; --bg-light: #1e5799; --neon-blue: #00f2ff; --neon-pink: #ff00de; --gold-light: #fceabb; --gold-dark: #f8b500; --gold-shadow: #b06602; }
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; background: radial-gradient(circle at center, var(--bg-light) 0%, var(--bg-dark) 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif; overflow: hidden; user-select: none; -webkit-tap-highlight-color: transparent; }
+        .star { position: absolute; color: #ffd700; font-size: 20px; animation: twinkle 3s infinite ease-in-out; opacity: 0.8; z-index: 0; }
+        @keyframes twinkle { 0%, 100% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
         .top-right-panel { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 20; }
         .bottom-right-panel { position: absolute; bottom: 20px; right: 20px; z-index: 20; }
-
-        .icon-btn {
-            width: 50px; height: 50px; border: 2px solid #fff; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 24px; cursor: pointer; transition: transform 0.2s;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5); user-select: none;
-        }
+        .icon-btn { width: 50px; height: 50px; border: 2px solid #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; transition: transform 0.2s; box-shadow: 0 0 10px rgba(0,0,0,0.5); user-select: none; }
         .icon-btn:active { transform: scale(0.9); }
-
-        .stats-btn { background: linear-gradient(135deg, #ffd700, #ff8c00); }
-        .stats-btn::after { content: '🏆'; }
-        .reset-btn { background: linear-gradient(135deg, #ff4d4d, #990000); }
-        .reset-btn::after { content: '🔄'; }
-        .info-btn { background: linear-gradient(135deg, #3498db, #2980b9); }
-        .info-btn::after { content: 'ℹ️'; }
-        .sound-btn { background: linear-gradient(135deg, #00f2ff, #0078ff); }
-        .sound-btn.muted { background: linear-gradient(135deg, #555, #333); filter: grayscale(1); }
-
-        .neon-sign {
-            font-size: 36px; color: #fff; text-transform: uppercase; letter-spacing: 2px;
-            margin-bottom: 20px; text-align: center; line-height: 1.1;
-            text-shadow: 0 0 10px #fff, 0 0 20px var(--neon-pink), 0 0 40px var(--neon-pink);
-            z-index: 2; position: relative;
-        }
-
-        .machine-wrapper {
-            position: relative; display: flex; align-items: center; justify-content: center;
-            transform: scale(1); transition: transform 0.3s; z-index: 2;
-        }
-
-        .slot-machine {
-            width: 340px; height: 340px;
-            background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-light) 50%, var(--gold-dark) 100%);
-            border-radius: 30px; padding: 15px;
-            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.5), 0 20px 50px rgba(0,0,0,0.6), 0 0 0 5px var(--gold-shadow);
-            position: relative; display: flex; flex-direction: column; align-items: center;
-        }
-
-        .screen-border {
-            width: 100%; height: 160px; background: #2a1f08; border-radius: 15px; padding: 8px;
-            box-shadow: inset 0 0 15px #000; display: flex; justify-content: center;
-        }
-
-        .reels-container {
-            width: 100%; height: 100%; background: #fff; border-radius: 10px;
-            display: flex; overflow: hidden; border: 2px solid #000; position: relative;
-        }
-
-        .payline {
-            position: absolute; top: 50%; left: 0; width: 100%; height: 4px;
-            background: rgba(255, 0, 0, 0.5); transform: translateY(-50%);
-            z-index: 5; box-shadow: 0 0 10px red; display: none;
-        }
-
-        .reel { flex: 1; border-right: 2px solid #ccc; position: relative; }
-        .reel:last-child { border-right: none; }
+        .stats-btn { background: linear-gradient(135deg, #ffd700, #ff8c00); } .stats-btn::after { content: '🏆'; }
+        .reset-btn { background: linear-gradient(135deg, #ff4d4d, #990000); } .reset-btn::after { content: '🔄'; }
+        .info-btn { background: linear-gradient(135deg, #3498db, #2980b9); } .info-btn::after { content: 'ℹ️'; }
+        .sound-btn { background: linear-gradient(135deg, #00f2ff, #0078ff); } .sound-btn.muted { background: linear-gradient(135deg, #555, #333); filter: grayscale(1); }
+        .neon-sign { font-size: 36px; color: #fff; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; text-align: center; line-height: 1.1; text-shadow: 0 0 10px #fff, 0 0 20px var(--neon-pink), 0 0 40px var(--neon-pink); z-index: 2; position: relative; }
+        .machine-wrapper { position: relative; display: flex; align-items: center; justify-content: center; transform: scale(1); transition: transform 0.3s; z-index: 2; }
+        .slot-machine { width: 340px; height: 340px; background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-light) 50%, var(--gold-dark) 100%); border-radius: 30px; padding: 15px; box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.5), 0 20px 50px rgba(0,0,0,0.6), 0 0 0 5px var(--gold-shadow); position: relative; display: flex; flex-direction: column; align-items: center; }
+        .screen-border { width: 100%; height: 160px; background: #2a1f08; border-radius: 15px; padding: 8px; box-shadow: inset 0 0 15px #000; display: flex; justify-content: center; }
+        .reels-container { width: 100%; height: 100%; background: #fff; border-radius: 10px; display: flex; overflow: hidden; border: 2px solid #000; position: relative; }
+        .payline { position: absolute; top: 50%; left: 0; width: 100%; height: 4px; background: rgba(255, 0, 0, 0.5); transform: translateY(-50%); z-index: 5; box-shadow: 0 0 10px red; display: none; }
+        .reel { flex: 1; border-right: 2px solid #ccc; position: relative; } .reel:last-child { border-right: none; }
         .reel-strip { position: absolute; top: 0; left: 0; width: 100%; }
-
-        .symbol {
-            height: 80px; display: flex; align-items: center; justify-content: center; font-size: 45px;
-        }
-
-        .symbol img {
-            width: 65px; height: 65px; object-fit: contain;
-            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
-        }
-
+        .symbol { height: 80px; display: flex; align-items: center; justify-content: center; font-size: 45px; }
+        .symbol img { width: 65px; height: 65px; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
         .blur { filter: blur(3px); }
-
         .controls-panel { margin-top: 15px; width: 100%; display: flex; flex-direction: column; gap: 10px; }
-
-        .balance-box {
-            background: #000; border: 2px solid var(--gold-light); border-radius: 10px; padding: 5px;
-            color: #0f0; font-size: 18px; font-weight: 900; text-align: center; text-transform: uppercase;
-            box-shadow: 0 0 5px rgba(0, 255, 0, 0.2);
-        }
-
-        .bet-controls {
-            display: flex; align-items: center; justify-content: space-between;
-            background: rgba(0,0,0,0.6); border-radius: 10px; padding: 5px; border: 1px solid var(--gold-shadow);
-        }
-
+        .balance-box { background: #000; border: 2px solid var(--gold-light); border-radius: 10px; padding: 5px; color: #0f0; font-size: 18px; font-weight: 900; text-align: center; text-transform: uppercase; box-shadow: 0 0 5px rgba(0, 255, 0, 0.2); }
+        .bet-controls { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.6); border-radius: 10px; padding: 5px; border: 1px solid var(--gold-shadow); }
         .bet-input-wrapper { display: flex; align-items: center; gap: 5px; flex: 1; }
         .bet-label { color: var(--gold-light); font-size: 12px; font-weight: bold; }
-
-        #betInput {
-            width: 90px; background: #000; border: 1px solid var(--gold-light); color: #fff;
-            padding: 5px; border-radius: 5px; text-align: center; font-family: 'Montserrat', sans-serif;
-            font-weight: bold; font-size: 14px;
-        }
-
+        #betInput { width: 90px; background: #000; border: 1px solid var(--gold-light); color: #fff; padding: 5px; border-radius: 5px; text-align: center; font-family: 'Montserrat', sans-serif; font-weight: bold; font-size: 14px; }
         .bet-buttons { display: flex; gap: 3px; }
-        .bet-btn {
-            background: linear-gradient(to bottom, #fceabb, #f8b500); border: none; border-radius: 4px;
-            padding: 6px 8px; font-size: 10px; font-weight: bold; color: #5a3e08; cursor: pointer;
-        }
-        .bet-btn:active { transform: translateY(1px); }
-
+        .bet-btn { background: linear-gradient(to bottom, #fceabb, #f8b500); border: none; border-radius: 4px; padding: 6px 8px; font-size: 10px; font-weight: bold; color: #5a3e08; cursor: pointer; } .bet-btn:active { transform: translateY(1px); }
         .lever-container { position: absolute; right: -30px; top: 50px; width: 60px; height: 200px; z-index: 1; }
         .lever-handle { position: absolute; left: 10px; top: 110px; width: 20px; height: 120px; transform-origin: bottom center; transform: rotate(0deg); }
         .lever-stick { width: 15px; height: 100%; background: linear-gradient(90deg, #e6b853, #fff, #b58928); border-radius: 10px; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); }
         .lever-stick::after { content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); width: 25px; height: 25px; background: #b58928; border-radius: 50%; }
         .lever-knob { width: 60px; height: 60px; background: radial-gradient(circle at 30% 30%, #ff5e5e, #d92e2e); border-radius: 50%; position: absolute; top: -30px; left: 50%; transform: translateX(-50%); cursor: grab; z-index: 10; }
-
-        /* МОДАЛЬНЫЕ ОКНА */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85);
-            z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px);
-        }
-        .modal-content {
-            background: linear-gradient(135deg, #1e2a3a, #0d121b); width: 90%; max-width: 400px; height: 80%;
-            border-radius: 20px; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
-            display: flex; flex-direction: column; overflow: hidden; position: relative;
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-content { background: linear-gradient(135deg, #1e2a3a, #0d121b); width: 90%; max-width: 400px; height: 80%; border-radius: 20px; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(0, 242, 255, 0.2); display: flex; flex-direction: column; overflow: hidden; position: relative; }
         .modal-header { padding: 15px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .modal-title { color: #fff; font-size: 20px; text-transform: uppercase; }
         .close-btn { position: absolute; top: 10px; right: 15px; color: #fff; font-size: 24px; cursor: pointer; }
-
         .tabs { display: flex; background: rgba(0,0,0,0.3); }
         .tab { flex: 1; padding: 12px; text-align: center; color: #888; cursor: pointer; font-size: 14px; font-weight: bold; border-bottom: 2px solid transparent; }
         .tab.active { color: var(--neon-blue); border-bottom: 2px solid var(--neon-blue); background: rgba(0, 242, 255, 0.05); }
-
         .leaderboard-list, .payout-list { flex: 1; overflow-y: auto; padding: 10px; }
-
-        .lb-row, .payout-row {
-            display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);
-            margin-bottom: 8px; padding: 10px 15px; border-radius: 10px; color: #fff;
-        }
+        .lb-row, .payout-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); margin-bottom: 8px; padding: 10px 15px; border-radius: 10px; color: #fff; }
         .lb-row.is-me { border: 1px solid var(--gold-dark); background: rgba(248, 181, 0, 0.15); }
         .lb-rank { width: 30px; font-size: 16px; color: #888; font-weight: bold; }
         .lb-score, .pay-val { font-family: 'Montserrat', monospace; color: #ffd700; font-weight: bold; font-size: 14px; }
-
-        .pay-sym { margin-right: 15px; display: flex; align-items: center; }
-        .pay-sym img { width: 40px; height: 40px; }
-        .pay-sym-emoji { font-size: 30px; }
-
-        #status {
-            position: fixed; bottom: 20px; font-size: 20px; color: #fff; text-shadow: 0 2px 4px #000;
-            z-index: 10; background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 20px; opacity: 0; transition: opacity 0.3s; text-align: center;
-        }
+        .pay-sym { margin-right: 15px; display: flex; align-items: center; } .pay-sym img { width: 40px; height: 40px; } .pay-sym-emoji { font-size: 30px; }
+        #status { position: fixed; bottom: 20px; font-size: 20px; color: #fff; text-shadow: 0 2px 4px #000; z-index: 10; background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 20px; opacity: 0; transition: opacity 0.3s; text-align: center; }
         @media (max-width: 450px) { .machine-wrapper { transform: scale(0.9); } .neon-sign { font-size: 30px; } }
     </style>
 </head>
 <body>
-
-    <div class="star" style="top: 10%; left: 10%;">★</div>
-    <div class="star" style="top: 20%; right: 15%;">★</div>
-    <div class="star" style="top: 80%; left: 20%;">★</div>
-
+    <div class="star" style="top: 10%; left: 10%;">★</div> <div class="star" style="top: 20%; right: 15%;">★</div> <div class="star" style="top: 80%; left: 20%;">★</div>
     <div class="top-right-panel">
-        <div class="icon-btn info-btn" onclick="openInfo()"></div>
-        <div class="icon-btn reset-btn" onclick="resetBalance()"></div>
-        <div class="icon-btn stats-btn" onclick="openStats()"></div>
+        <div class="icon-btn info-btn" onclick="openInfo()"></div> <div class="icon-btn reset-btn" onclick="resetBalance()"></div> <div class="icon-btn stats-btn" onclick="openStats()"></div>
     </div>
-
-    <div class="bottom-right-panel">
-        <div class="icon-btn sound-btn" id="soundBtn" onclick="toggleSound()">🔊</div>
-    </div>
-
+    <div class="bottom-right-panel"><div class="icon-btn sound-btn" id="soundBtn" onclick="toggleSound()">🔊</div></div>
     <div class="neon-sign">MELSTROY<br>SLOT</div>
-
     <div class="machine-wrapper">
         <div class="slot-machine">
-            <div class="screen-border">
-                <div class="reels-container">
-                    <div class="payline"></div>
-                    <div class="glass-overlay"></div>
-                    <div class="reel"><div class="reel-strip" id="reel1"></div></div>
-                    <div class="reel"><div class="reel-strip" id="reel2"></div></div>
-                    <div class="reel"><div class="reel-strip" id="reel3"></div></div>
-                </div>
-            </div>
-
+            <div class="screen-border"><div class="reels-container"><div class="payline"></div> <div class="glass-overlay"></div><div class="reel"><div class="reel-strip" id="reel1"></div></div><div class="reel"><div class="reel-strip" id="reel2"></div></div><div class="reel"><div class="reel-strip" id="reel3"></div></div></div></div>
             <div class="controls-panel">
                 <div class="balance-box">БАЛАНС: <span id="balance">...</span></div>
-
                 <div class="bet-controls">
-                    <div class="bet-input-wrapper">
-                        <span class="bet-label">СТАВКА:</span>
-                        <input type="text" id="betInput" inputmode="numeric" value="50">
-                    </div>
+                    <div class="bet-input-wrapper"><span class="bet-label">СТАВКА:</span><input type="text" id="betInput" inputmode="numeric" value="50"></div>
                     <div class="bet-buttons">
-                        <button class="bet-btn" onclick="adjustBet('min')">MIN</button>
-                        <button class="bet-btn" onclick="adjustBet('half')">/2</button>
-                        <button class="bet-btn" onclick="adjustBet('double')">x2</button>
-                        <button class="bet-btn" onclick="adjustBet('max')">MAX</button>
+                        <button class="bet-btn" onclick="adjustBet('min')">MIN</button> <button class="bet-btn" onclick="adjustBet('half')">/2</button>
+                        <button class="bet-btn" onclick="adjustBet('double')">x2</button> <button class="bet-btn" onclick="adjustBet('max')">MAX</button>
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="lever-container">
-            <div class="lever-handle" id="leverHandle">
-                <div class="lever-stick"></div>
-                <div class="lever-knob" id="leverKnob"></div>
-            </div>
-        </div>
+        <div class="lever-container"><div class="lever-handle" id="leverHandle"><div class="lever-stick"></div><div class="lever-knob" id="leverKnob"></div></div></div>
     </div>
-
     <div id="status">ЗАГРУЗКА...</div>
-
-    <!-- МОДАЛ: ТОП -->
-    <div class="modal-overlay" id="statsModal">
-        <div class="modal-content">
-            <div class="close-btn" onclick="closeModal('statsModal')">&times;</div>
-            <div class="modal-header"><div class="modal-title">Зал Славы</div></div>
-            <div class="tabs">
-                <div class="tab active" onclick="switchTab('balance')" id="tabBalance">💰 Богачи</div>
-                <div class="tab" onclick="switchTab('wins')" id="tabWins">🎰 Заносы</div>
-            </div>
-            <div class="leaderboard-list" id="lbList"></div>
-        </div>
-    </div>
-
-    <!-- МОДАЛ: ИНФО -->
-    <div class="modal-overlay" id="infoModal">
-        <div class="modal-content">
-            <div class="close-btn" onclick="closeModal('infoModal')">&times;</div>
-            <div class="modal-header"><div class="modal-title">Выплаты</div></div>
-            <div class="payout-list" id="payoutList"></div>
-        </div>
-    </div>
+    <!-- MODALS -->
+    <div class="modal-overlay" id="statsModal"><div class="modal-content"><div class="close-btn" onclick="closeModal('statsModal')">&times;</div><div class="modal-header"><div class="modal-title">Топ Игроков</div></div><div class="tabs"><div class="tab active" onclick="switchTab('balance')" id="tabBalance">💰 Богачи</div><div class="tab" onclick="switchTab('wins')" id="tabWins">🎰 Рекорды</div></div><div class="leaderboard-list" id="lbList"></div></div></div>
+    <div class="modal-overlay" id="infoModal"><div class="modal-content"><div class="close-btn" onclick="closeModal('infoModal')">&times;</div><div class="modal-header"><div class="modal-title">Выплаты</div></div><div class="payout-list" id="payoutList"></div></div></div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-
+        const tg = window.Telegram.WebApp; tg.expand();
         const SYMBOLS = [
             { id: 'mel', type: 'img', val: 'https://ltdfoto.ru/images/2026/01/21/8580fcabde66c0c835050b7188ee0e94-1.jpg' },
-            { id: '777', type: 'text', val: '7️⃣' },
-            { id: 'gem', type: 'text', val: '💎' },
-            { id: 'bag', type: 'text', val: '💰' },
-            { id: 'cherry', type: 'text', val: '🍒' },
-            { id: 'bell', type: 'text', val: '🔔' },
-            { id: 'lemon', type: 'text', val: '🍋' }
+            { id: '777', type: 'text', val: '7️⃣' }, { id: 'gem', type: 'text', val: '💎' }, { id: 'bag', type: 'text', val: '💰' },
+            { id: 'cherry', type: 'text', val: '🍒' }, { id: 'bell', type: 'text', val: '🔔' }, { id: 'lemon', type: 'text', val: '🍋' }
         ];
-
-        const SYMBOL_HEIGHT = 80;
-
-        const MULTIPLIERS = {
-            'mel': 50,
-            '777': 25,
-            'gem': 10,
-            'bag': 5,
-            'cherry': 3,
-            'bell': 2,
-            'lemon': 1
-        };
-
-        const MELL_SOUNDS = {
-            1: 'https://files.catbox.moe/2hcsh1.mp3',
-            2: 'https://files.catbox.moe/ow0gj3.mp3',
-            3: 'https://files.catbox.moe/ad39v6.mp3'
-        };
+        const SYMBOL_HEIGHT = 80; 
+        const MULTIPLIERS = { 'mel': 50, '777': 25, 'gem': 10, 'bag': 5, 'cherry': 3, 'bell': 2, 'lemon': 1 };
+        const MELL_SOUNDS = { 1: 'https://files.catbox.moe/2hcsh1.mp3', 2: 'https://files.catbox.moe/ow0gj3.mp3', 3: 'https://files.catbox.moe/ad39v6.mp3' };
         const WELCOME_SOUND_URL = 'https://files.catbox.moe/t1g2o0.mp3';
+        
+        // Аудио контекст (для механики) + Кэш (для музыки)
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = new AudioContext();
+        let noiseBuffer = null;
+        let audioCache = {};
+        let isAudioUnlocked = false;
 
-        const audioCache = {};
+        const reels = [ document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3') ];
+        const balanceEl = document.getElementById('balance');
+        const betInput = document.getElementById('betInput');
+        const statusEl = document.getElementById('status');
+        const payline = document.querySelector('.payline');
+        const leverHandle = document.getElementById('leverHandle');
+        const leverKnob = document.getElementById('leverKnob');
+        const lbList = document.getElementById('lbList');
+        const soundBtn = document.getElementById('soundBtn');
+        const payoutList = document.getElementById('payoutList');
+
+        let balance = 1000, maxWin = 0, isSpinning = false, currentTab = 'balance', isMuted = false, userId = null;
 
         const FAKE_USERS = [
             { name: "Melstroy", balance: 50000000, maxWin: 12000000 },
@@ -309,375 +133,188 @@
             { name: "Slot Machine", balance: 50000, maxWin: 20000 }
         ];
 
-        setInterval(() => {
-            const randomBot = FAKE_USERS[Math.floor(Math.random() * FAKE_USERS.length)];
-            if(Math.random() > 0.6) {
-                const win = Math.floor(Math.random() * 50000);
-                randomBot.balance += win;
-                if(win > randomBot.maxWin) randomBot.maxWin = win;
-            } else {
-                randomBot.balance -= Math.floor(Math.random() * 5000);
-                if(randomBot.balance < 1000) randomBot.balance = 50000;
-            }
-            if(document.getElementById('statsModal').style.display === 'flex') renderLeaderboard();
-        }, 3000);
-
-        const reels = [ document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3') ];
-        const balanceEl = document.getElementById('balance');
-        const betInput = document.getElementById('betInput');
-        const statusEl = document.getElementById('status');
-        const payline = document.querySelector('.payline');
-        const leverHandle = document.getElementById('leverHandle');
-        const leverKnob = document.getElementById('leverKnob');
-        const lbList = document.getElementById('lbList');
-        const soundBtn = document.getElementById('soundBtn');
-        const payoutList = document.getElementById('payoutList');
-
-        let balance = 1000;
-        let maxWin = 0;
-        let isSpinning = false;
-        let currentTab = 'balance';
-        let isMuted = false;
-
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
-        let spinInterval = null, noiseBuffer = null;
-
         function init() {
             preloadSounds();
-            createNoiseBuffer();
-            reels.forEach(reel => {
-                reel.innerHTML = generateStripHTML(20);
-                setReelPosition(reel, 10);
-            });
-
-            if (tg.CloudStorage) {
-                tg.CloudStorage.getItem('mel_bal', (err, val) => {
-                    if (!err && val) balance = parseInt(val);
-                    else loadLocal();
-                    updateUI();
-                });
-                tg.CloudStorage.getItem('mel_max', (err, val) => {
-                    if (!err && val) maxWin = parseInt(val);
-                });
-            } else {
-                loadLocal();
-                updateUI();
-            }
+            reels.forEach(r => { r.innerHTML = generateStripHTML(20); setReelPosition(r, 10); });
+            loadLocal();
+            updateUI();
             loadMuteState();
             renderPayouts();
             showStatus("ТЯНИ РЫЧАГ!", "#fff");
-
-            // Фикс для мобилок: Разблокируем аудио при первом касании
-            const unlockHandler = () => {
-                unlockAudio();
-                document.removeEventListener('touchstart', unlockHandler);
-                document.removeEventListener('click', unlockHandler);
-            };
-            document.addEventListener('touchstart', unlockHandler);
-            document.addEventListener('click', unlockHandler);
+            
+            // Глобальный анлок аудио по любому касанию
+            document.addEventListener('touchstart', unlockAudio, { once: true });
+            document.addEventListener('click', unlockAudio, { once: true });
         }
 
-        // === АУДИО СИСТЕМА ===
+        // === АУДИО (ИСПРАВЛЕНО ДЛЯ IOS/ANDROID) ===
         function preloadSounds() {
-            // Кэшируем все звуки
-            [...Object.values(MELL_SOUNDS), WELCOME_SOUND_URL].forEach(url => {
-                const a = new Audio();
-                a.src = url;
-                a.preload = 'auto';
-                a.volume = 1.0;
-                audioCache[url] = a;
-            });
+            // Создаем объекты, но не запускаем
+            for (const [key, url] of Object.entries(MELL_SOUNDS)) {
+                audioCache[key] = new Audio(url);
+                audioCache[key].preload = 'auto';
+            }
+            audioCache['welcome'] = new Audio(WELCOME_SOUND_URL);
+            audioCache['welcome'].preload = 'auto';
         }
 
         function unlockAudio() {
-            // 1. Активируем Web Audio API
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (isAudioUnlocked) return;
+            
+            // 1. Разблокируем Web Audio API
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            // 2. Разблокируем HTML5 Audio (проигрываем тишину)
+            Object.values(audioCache).forEach(audio => {
+                audio.play().then(() => {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }).catch(() => {});
+            });
 
-            // 2. Играем приветствие
+            isAudioUnlocked = true;
+            
+            // Играем приветствие, если звук включен
             if (!isMuted) {
-                const welcome = audioCache[WELCOME_SOUND_URL];
-                if(welcome) {
-                    welcome.currentTime = 0;
-                    welcome.play().catch(() => {});
-                }
+                const w = audioCache['welcome'];
+                w.volume = 0.5;
+                w.play().catch(() => {});
             }
         }
 
-        function playSound(url) {
+        function playSound(key) {
             if (isMuted) return;
-            const audio = audioCache[url];
+            const audio = audioCache[key];
             if (audio) {
                 audio.currentTime = 0;
                 audio.play().catch(e => console.log(e));
-            } else {
-                new Audio(url).play().catch(() => {});
             }
         }
 
-        function renderPayouts() {
-            let html = '';
-            SYMBOLS.forEach(s => {
-                let icon = s.type === 'img'
-                    ? `<img src="${s.val}">`
-                    : `<span class="pay-sym-emoji">${s.val}</span>`;
-
-                html += `
-                    <div class="payout-row">
-                        <span class="pay-sym">${icon}</span>
-                        <span class="pay-val">x${MULTIPLIERS[s.id]}</span>
-                    </div>
-                `;
-            });
-            html += '<div style="text-align:center; color:#888; font-size:12px; margin-top:10px;">За 3 совпадения в ряд</div>';
-            payoutList.innerHTML = html;
-        }
-
-        function loadLocal() {
-            const locBal = localStorage.getItem('mel_bal');
-            if (locBal) balance = parseInt(locBal);
-            else balance = 1000;
-            if(balance < 10) balance = 1000;
-
-            const locMax = localStorage.getItem('mel_max');
-            if(locMax) maxWin = parseInt(locMax);
-        }
-
-        function saveProgress() {
-            localStorage.setItem('mel_bal', balance);
-            localStorage.setItem('mel_max', maxWin);
-            if(tg.CloudStorage) {
-                tg.CloudStorage.setItem('mel_bal', balance.toString());
-                tg.CloudStorage.setItem('mel_max', maxWin.toString());
-            }
-        }
-
-        function resetBalance() {
-            if(confirm("Сбросить баланс до 1,000?")) {
-                balance = 1000;
-                saveProgress();
-                updateUI();
-                showStatus("БАЛАНС СБРОШЕН", "#ffd700");
-            }
-        }
-
-        function formatNumber(num) { return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
-        function parseNumber(str) { return parseInt(str.replace(/,/g, '')) || 0; }
-        function updateUI() { balanceEl.textContent = formatNumber(balance); }
-
-        betInput.addEventListener('input', function() {
-            let raw = this.value.replace(/\D/g, ''); if(raw === '') raw = '0';
-            this.value = formatNumber(parseInt(raw));
-        });
-        betInput.addEventListener('change', function() {
-            let val = parseNumber(this.value);
-            if(val < 10) val = 10; if(val > balance) val = balance;
-            this.value = formatNumber(val);
-        });
-        function adjustBet(action) {
-            let cur = parseNumber(betInput.value) || 10;
-            if(action === 'min') cur = 10;
-            if(action === 'max') cur = balance > 0 ? balance : 10;
-            if(action === 'double') cur *= 2;
-            if(action === 'half') cur = Math.floor(cur / 2);
-            if(cur < 10) cur = 10; if(cur > balance) cur = balance;
-            betInput.value = formatNumber(cur);
-        }
-
-        function openStats() { document.getElementById('statsModal').style.display = 'flex'; renderLeaderboard(); }
-        function openInfo() { document.getElementById('infoModal').style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-        function switchTab(tab) {
-            currentTab = tab;
-            document.getElementById('tabBalance').classList.toggle('active', tab === 'balance');
-            document.getElementById('tabWins').classList.toggle('active', tab === 'wins');
-            renderLeaderboard();
-        }
-
-        function renderLeaderboard() {
-            let list = [...FAKE_USERS];
-            let me = {
-                name: (tg.initDataUnsafe?.user?.first_name || "ВЫ (YOU)"),
-                balance: balance,
-                maxWin: maxWin
-            };
-            list.push(me);
-
-            if (currentTab === 'balance') list.sort((a, b) => b.balance - a.balance);
-            else list.sort((a, b) => b.maxWin - a.maxWin);
-
-            let html = '';
-            list.forEach((user, index) => {
-                let isMe = user === me;
-                let rankClass = index === 0 ? 'top-1' : (index === 1 ? 'top-2' : (index === 2 ? 'top-3' : ''));
-                let score = currentTab === 'balance' ? user.balance : user.maxWin;
-                let scoreClass = currentTab === 'balance' ? 'lb-score gold' : 'lb-score';
-
-                html += `
-                    <div class="lb-row ${isMe ? 'is-me' : ''}">
-                        <div class="lb-rank ${rankClass}">#${index + 1}</div>
-                        <div class="lb-name">${user.name}</div>
-                        <div class="${scoreClass}">${formatNumber(score)}</div>
-                    </div>
-                `;
-            });
-            lbList.innerHTML = html;
-        }
-
-        function loadMuteState() {
-            const muted = localStorage.getItem('mel_muted');
-            if (muted === 'true') {
-                isMuted = true;
-                soundBtn.textContent = '🔇';
-                soundBtn.classList.add('muted');
-            }
-        }
-
-        function toggleSound() {
-            isMuted = !isMuted;
-            localStorage.setItem('mel_muted', isMuted);
-            if (isMuted) {
-                soundBtn.textContent = '🔇';
-                soundBtn.classList.add('muted');
-                stopSound();
-            } else {
-                soundBtn.textContent = '🔊';
-                soundBtn.classList.remove('muted');
-                if(audioCtx.state === 'suspended') audioCtx.resume();
-            }
-        }
-
+        // Синтез звуков (Механика)
         function createNoiseBuffer() {
-            if(noiseBuffer) return;
-            const b = audioCtx.sampleRate; noiseBuffer = audioCtx.createBuffer(1, b, audioCtx.sampleRate);
+            if (noiseBuffer) return;
+            const b = audioCtx.sampleRate; noiseBuffer = audioCtx.createBuffer(1, b, b);
             const o = noiseBuffer.getChannelData(0); for(let i=0; i<b; i++) o[i] = Math.random()*2-1;
         }
         function playTone(f,t,d,v=0.1) {
-            if(isMuted || !audioCtx) return;
-            const o=audioCtx.createOscillator(); const g=audioCtx.createGain();
-            o.type=t; o.frequency.value=f; g.gain.value=v;
-            g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);
-            o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+d);
+            if(isMuted) return; 
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const o=audioCtx.createOscillator();const g=audioCtx.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d);
         }
         function playFilteredNoise(f,d,v) {
-            if(isMuted || !audioCtx) return;
-            createNoiseBuffer(); const n=audioCtx.createBufferSource(); n.buffer=noiseBuffer;
-            const fl=audioCtx.createBiquadFilter(); fl.type='bandpass'; fl.frequency.value=f; fl.Q.value=5;
-            const g=audioCtx.createGain(); g.gain.setValueAtTime(v,audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+d);
-            n.connect(fl); fl.connect(g); g.connect(audioCtx.destination); n.start();
-        }
-        function playRatchet() { playFilteredNoise(2000+Math.random()*500, 0.05, 0.3); }
-        function playClunk() { playTone(60,'triangle',0.2,0.4); playFilteredNoise(800,0.1,0.3); }
-        function startSound() {
-            if(isMuted || audioCtx.state==='suspended') { if(!isMuted) audioCtx.resume(); return; }
-        }
-        function stopSound() {}
-        function playWin(amt) {
             if(isMuted) return;
-            if(amt>=100) for(let k=0;k<10;k++) setTimeout(()=>playFilteredNoise(2000+Math.random()*1000,0.05,0.1),600+k*60);
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            if(!noiseBuffer) createNoiseBuffer();
+            const n=audioCtx.createBufferSource();n.buffer=noiseBuffer;const fl=audioCtx.createBiquadFilter();fl.type='bandpass';fl.frequency.value=f;fl.Q.value=5;const g=audioCtx.createGain();g.gain.setValueAtTime(v,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+d);n.connect(fl);fl.connect(g);g.connect(audioCtx.destination);n.start();
         }
+        
+        function playRatchet() { playFilteredNoise(2000+Math.random()*500,0.05,0.3); }
+        function playClunk() { playTone(60,'triangle',0.2,0.4); playFilteredNoise(800,0.1,0.3); }
+        function playWinCoins() { if(isMuted)return; for(let k=0;k<10;k++) setTimeout(()=>playFilteredNoise(2000+Math.random()*1000,0.05,0.1),600+k*60); }
 
-        function playMellstroySound(count) {
-            if (MELL_SOUNDS[count]) {
-                playSound(MELL_SOUNDS[count]);
-            }
-        }
-
-        function generateStripHTML(c) {
-            let h='';
-            for(let i=0;i<c;i++) {
-                const s = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-                if(s.type === 'img') h+=`<div class="symbol"><img src="${s.val}"></div>`;
-                else h+=`<div class="symbol">${s.val}</div>`;
-            }
-            return h;
-        }
-        function setReelPosition(r, i) { r.style.transform = `translateY(${-(i*SYMBOL_HEIGHT)+40}px)`; }
-        function showStatus(t,c='#fff') { statusEl.textContent=t; statusEl.style.color=c; statusEl.style.opacity='1'; setTimeout(()=>{if(!isSpinning)statusEl.style.opacity='0';},3000); }
-
-        let isDrag=false, startY=0, lastAng=0;
-        function resetLev() { leverHandle.style.transition='transform .3s'; leverHandle.style.transform='rotate(0deg)'; setTimeout(()=>leverHandle.style.transition='',300); }
-
-        leverKnob.addEventListener('mousedown', e=>{ if(isSpinning)return; if(audioCtx.state==='suspended')audioCtx.resume(); isDrag=true; startY=e.clientY; leverKnob.style.cursor='grabbing'; });
-        document.addEventListener('mousemove', e=>{ if(!isDrag)return; let a=Math.min(Math.max((e.clientY-startY)*0.5,0),130); if(Math.abs(a-lastAng)>15){playRatchet();lastAng=a;} leverHandle.style.transform=`rotate(${a}deg)`; });
-        document.addEventListener('mouseup', e=>{ if(!isDrag)return; isDrag=false; if(e.clientY-startY>150){playClunk();setTimeout(spin,250);} resetLev(); });
-
-        leverKnob.addEventListener('touchstart', e=>{if(isSpinning)return; isDrag=true; startY=e.touches[0].clientY;}, {passive:false});
-        document.addEventListener('touchmove', e=>{if(!isDrag)return; e.preventDefault(); let a=Math.min(Math.max((e.touches[0].clientY-startY)*0.5,0),130); if(Math.abs(a-lastAng)>15){playRatchet();lastAng=a;} leverHandle.style.transform=`rotate(${a}deg)`;}, {passive:false});
-        document.addEventListener('touchend', e=>{if(!isDrag)return; isDrag=false; if(e.changedTouches[0].clientY-startY>150){playClunk();setTimeout(spin,250);} resetLev();});
-
+        // === ЛОГИКА ===
         function spin() {
+            // Повторный анлок на всякий случай
+            if(!isAudioUnlocked) unlockAudio();
+
             const bet = parseNumber(betInput.value);
             if(balance < bet) { showStatus("НЕДОСТАТОЧНО СРЕДСТВ!", "red"); return; }
-
             isSpinning = true; balance -= bet; saveProgress(); updateUI(); payline.style.display='none'; statusEl.style.opacity='0';
-            startSound();
-
+            
             let res = [];
-            // 35% шанс на выигрыш
             if(Math.random()<0.35) {
                 let s = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
-                res = Math.random() > 0.5
-                    ? [s, s, SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]]
-                    : [s, s, s];
-            } else {
-                for(let i=0; i<3; i++) res.push(SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]);
-            }
+                res = Math.random()>0.5 ? [s,s,SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]] : [s,s,s];
+            } else { for(let i=0;i<3;i++) res.push(SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]); }
 
             reels.forEach((r, i) => {
                 let arr=[]; for(let k=0;k<20;k++) arr.push(SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]);
                 arr[18] = res[i];
-
-                r.innerHTML = arr.map(s => {
-                    if(s.type === 'img') return `<div class="symbol ${Math.random()>0.5?'blur':''}"><img src="${s.val}"></div>`;
-                    return `<div class="symbol ${Math.random()>0.5?'blur':''}">${s.val}</div>`;
-                }).join('');
-
+                r.innerHTML = arr.map(s => s.type==='img'?`<div class="symbol ${Math.random()>0.5?'blur':''}"><img src="${s.val}"></div>`:`<div class="symbol ${Math.random()>0.5?'blur':''}">${s.val}</div>`).join('');
                 r.children[18].classList.remove('blur');
                 r.style.transition='none'; r.style.transform='translateY(0px)'; r.offsetHeight;
                 r.style.transition=`transform ${2+i*0.5}s cubic-bezier(0.15,0.1,0.25,1)`;
                 r.style.transform=`translateY(${-(18*SYMBOL_HEIGHT)+40}px)`;
             });
-
-            setTimeout(() => { stopSound(); check(res, bet); isSpinning=false; }, 3500);
+            setTimeout(() => { check(res, bet); isSpinning=false; }, 3500);
         }
 
         function check(res, bet) {
             const [s1, s2, s3] = res;
-            document.querySelectorAll('.symbol').forEach(e=>e.classList.remove('blur'));
-
-            let melCount = 0;
-            if (s1.id === 'mel') melCount++;
-            if (s2.id === 'mel') melCount++;
-            if (s3.id === 'mel') melCount++;
-            if (melCount > 0) playMellstroySound(melCount);
+            let melCount = 0; if(s1.id==='mel')melCount++; if(s2.id==='mel')melCount++; if(s3.id==='mel')melCount++;
+            
+            if(melCount > 0) playSound(melCount); // Играем Мелстроя
 
             let mul = 0;
-
-            if(s1.id===s2.id && s2.id===s3.id) {
-                mul = MULTIPLIERS[s1.id];
-                showStatus(`ДЖЕКПОТ! x${mul}`, '#0f0');
-                payline.style.display='block';
-            }
-            else if(s1.id===s2.id || s2.id===s3.id || s1.id===s3.id) {
-                let p = (s1.id===s2.id) ? s1 : (s2.id===s3.id ? s2 : s1);
-                mul = Math.max(1, MULTIPLIERS[p.id] * 0.5);
-                showStatus(`ВЫИГРЫШ! x${mul}`, '#ffd700');
-            }
+            if(s1.id===s2.id && s2.id===s3.id) { mul=MULTIPLIERS[s1.id]; showStatus(`ДЖЕКПОТ! x${mul}`, '#0f0'); payline.style.display='block'; }
+            else if(s1.id===s2.id || s2.id===s3.id || s1.id===s3.id) { let p=(s1.id===s2.id)?s1:(s2.id===s3.id?s2:s1); mul=Math.max(1, MULTIPLIERS[p.id]*0.5); showStatus(`ВЫИГРЫШ! x${mul}`, '#ffd700'); }
 
             if(mul > 0) {
-                let win = Math.floor(bet * mul);
-                balance += win;
-                if(win > maxWin) maxWin = win;
-                saveProgress();
-                if(melCount === 0) playWin(win);
+                let win = Math.floor(bet * mul); balance += win; if(win>maxWin) maxWin=win;
+                saveProgress(); 
+                if(melCount === 0) playWinCoins(); // Монетки, если не Мел
                 setTimeout(()=>showStatus(`+${formatNumber(win)}`, '#fff'), 1000);
             } else { showStatus("ПОПРОБУЙ ЕЩЕ", "#ccc"); }
             updateUI();
         }
+
+        function loadLocal() {
+            if(tg.CloudStorage) {
+                tg.CloudStorage.getItem('mel_bal', (e,v)=>{if(!e&&v)balance=parseInt(v);updateUI();});
+                tg.CloudStorage.getItem('mel_max', (e,v)=>{if(!e&&v)maxWin=parseInt(v);});
+            }
+            const lB = localStorage.getItem('mel_bal'); if(lB) balance = parseInt(lB);
+            const lM = localStorage.getItem('mel_max'); if(lM) maxWin = parseInt(lM);
+            if(balance < 10) { balance = 1000; saveProgress(); }
+        }
+        function saveProgress() {
+            localStorage.setItem('mel_bal', balance); localStorage.setItem('mel_max', maxWin);
+            if(tg.CloudStorage) { tg.CloudStorage.setItem('mel_bal', balance.toString()); tg.CloudStorage.setItem('mel_max', maxWin.toString()); }
+        }
+        
+        function formatNumber(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+        function parseNumber(s) { return parseInt(s.replace(/,/g, '')) || 0; }
+        function updateUI() { balanceEl.textContent = formatNumber(balance); }
+        function generateStripHTML(c) { let h=''; for(let i=0;i<c;i++) { const s=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]; h+=s.type==='img'?`<div class="symbol"><img src="${s.val}"></div>`:`<div class="symbol">${s.val}</div>`; } return h; }
+        function setReelPosition(r, i) { r.style.transform = `translateY(${-(i*SYMBOL_HEIGHT)+40}px)`; }
+        function showStatus(t,c='#fff') { statusEl.textContent=t; statusEl.style.color=c; statusEl.style.opacity='1'; setTimeout(()=>{if(!isSpinning)statusEl.style.opacity='0';},3000); }
+        function resetBalance() { if(confirm("Сброс?")) { balance=1000; saveProgress(); updateUI(); } }
+        
+        async function openStats() { document.getElementById('statsModal').style.display='flex'; renderLeaderboard(); }
+        function renderLeaderboard() {
+            let list = [...FAKE_USERS];
+            list.push({ name: (tg.initDataUnsafe?.user?.first_name || "ВЫ (YOU)"), balance: balance, maxWin: maxWin });
+            if (currentTab === 'balance') list.sort((a, b) => b.balance - a.balance); else list.sort((a, b) => b.maxWin - a.maxWin);
+            let html = ''; list.forEach((u,i) => { let rc=i===0?'top-1':(i===1?'top-2':(i===2?'top-3':'')); html+=`<div class="lb-row"><div class="lb-rank ${rc}">#${i+1}</div><div class="lb-name">${u.name}</div><div class="lb-score gold">${formatNumber(currentTab==='balance'?u.balance:u.maxWin)}</div></div>`; });
+            lbList.innerHTML = html;
+        }
+        function switchTab(t) { currentTab=t; document.getElementById('tabBalance').classList.toggle('active',t==='balance'); document.getElementById('tabWins').classList.toggle('active',t==='wins'); renderLeaderboard(); }
+        function openInfo() { document.getElementById('infoModal').style.display='flex'; }
+        function closeModal(id) { document.getElementById(id).style.display='none'; }
+        function renderPayouts() { let h=''; SYMBOLS.forEach(s=>{ h+=`<div class="payout-row"><span class="pay-sym">${s.type==='img'?`<img src="${s.val}">`:`<span class="pay-sym-emoji">${s.val}</span>`}</span><span class="pay-val">x${MULTIPLIERS[s.id]}</span></div>`; }); payoutList.innerHTML=h; }
+        
+        function loadMuteState() { if(localStorage.getItem('mel_muted')==='true'){isMuted=true;soundBtn.textContent='🔇';soundBtn.classList.add('muted');} }
+        function toggleSound() { 
+            isMuted=!isMuted; 
+            localStorage.setItem('mel_muted',isMuted); 
+            soundBtn.textContent=isMuted?'🔇':'🔊'; 
+            soundBtn.classList.toggle('muted',isMuted); 
+            if(!isMuted) unlockAudio(); // Пытаемся разблокировать при включении
+        }
+
+        betInput.addEventListener('input', function() { this.value=formatNumber(parseInt(this.value.replace(/\D/g,''))||0); });
+        betInput.addEventListener('change', function() { let v=parseNumber(this.value); if(v<10)v=10; if(v>balance)v=balance; this.value=formatNumber(v); });
+        function adjustBet(a) { let c=parseNumber(betInput.value)||10; if(a==='min')c=10; if(a==='max')c=balance>0?balance:10; if(a==='double')c*=2; if(a==='half')c=Math.floor(c/2); if(c<10)c=10; if(c>balance)c=balance; betInput.value=formatNumber(c); }
+
+        let isDrag=false, sY=0, lA=0;
+        function resetLev() { leverHandle.style.transition='transform .3s'; leverHandle.style.transform='rotate(0deg)'; setTimeout(()=>leverHandle.style.transition='',300); }
+        leverKnob.addEventListener('mousedown', e=>{if(isSpinning)return; isDrag=true; sY=e.clientY; leverKnob.style.cursor='grabbing';});
+        document.addEventListener('mousemove', e=>{if(!isDrag)return; let a=Math.min(Math.max((e.clientY-sY)*0.5,0),130); if(Math.abs(a-lA)>15){playRatchet();lA=a;} leverHandle.style.transform=`rotate(${a}deg)`;});
+        document.addEventListener('mouseup', e=>{if(!isDrag)return; isDrag=false; if(e.clientY-sY>150){playClunk();setTimeout(spin,250);} resetLev();});
+        leverKnob.addEventListener('touchstart', e=>{if(isSpinning)return; isDrag=true; sY=e.touches[0].clientY;}, {passive:false});
+        document.addEventListener('touchmove', e=>{if(!isDrag)return; e.preventDefault(); let a=Math.min(Math.max((e.touches[0].clientY-sY)*0.5,0),130); if(Math.abs(a-lA)>15){playRatchet();lA=a;} leverHandle.style.transform=`rotate(${a}deg)`;}, {passive:false});
+        document.addEventListener('touchend', e=>{if(!isDrag)return; isDrag=false; if(e.changedTouches[0].clientY-sY>150){playClunk();setTimeout(spin,250);} resetLev();});
 
         init();
     </script>
