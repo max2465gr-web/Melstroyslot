@@ -101,7 +101,7 @@
         const WELCOME_SOUND_URL = 'https://files.catbox.moe/t1g2o0.mp3';
         const audioCache = {};
 
-        // === ЖИРНЫЕ БОТЫ ===
+        // === БОТЫ (Загружаются из памяти, если есть) ===
         let FAKE_USERS = [
             { name: "Melstroy", balance: 50000000, maxWin: 12000000 },
             { name: "Pavel Durov", balance: 10000000, maxWin: 5000000 },
@@ -141,17 +141,16 @@
             
             // Запуск симуляции жизни ботов
             loadBots();
-            setInterval(simulateBots, 2000); // Каждые 2 сек (быстрее)
+            setInterval(simulateBots, 1000); // Каждую секунду!
 
             document.addEventListener('touchstart', unlockAudio, { once: true });
             document.addEventListener('click', unlockAudio, { once: true });
         }
 
-        // === СОХРАНЕНИЕ И СИМУЛЯЦИЯ БОТОВ ===
+        // === БЕШЕНАЯ СИМУЛЯЦИЯ ===
         function loadBots() {
             const savedBots = localStorage.getItem('mel_bots');
             if (savedBots) {
-                // Восстанавливаем состояние, но если фейков меньше 9 (напр. новая версия), дополняем
                 const parsed = JSON.parse(savedBots);
                 if (parsed.length >= FAKE_USERS.length) {
                     FAKE_USERS.length = 0;
@@ -161,21 +160,20 @@
         }
 
         function simulateBots() {
-            const bot = FAKE_USERS[Math.floor(Math.random() * FAKE_USERS.length)];
-            
-            if(Math.random() > 0.55) { 
-                // КРУПНЫЙ ВЫИГРЫШ (до 50 млн)
-                const win = Math.floor(Math.random() * 10000000); 
-                bot.balance += win;
-                if(win > bot.maxWin) bot.maxWin = win;
-            } else {
-                // КРУПНЫЙ ПРОИГРЫШ (до 500к)
-                bot.balance -= Math.floor(Math.random() * 500000);
-                if(bot.balance < 100000) bot.balance = 5000000; // Ребай на 5 млн
+            // Обновляем сразу 2-х ботов
+            for(let k=0; k<2; k++) {
+                const bot = FAKE_USERS[Math.floor(Math.random() * FAKE_USERS.length)];
+                
+                if(Math.random() > 0.35) { // 65% выигрыш
+                    const win = Math.floor(Math.random() * 100000000); // до 100 млн
+                    bot.balance += win;
+                    if(win > bot.maxWin) bot.maxWin = win;
+                } else {
+                    bot.balance -= Math.floor(Math.random() * 5000000); // до 5 млн
+                    if(bot.balance < 1000000) bot.balance = 50000000; // Ребай
+                }
             }
-            
             localStorage.setItem('mel_bots', JSON.stringify(FAKE_USERS));
-            
             if(document.getElementById('statsModal').style.display === 'flex') renderLeaderboard();
         }
 
@@ -205,6 +203,7 @@
         function spin() {
             const bet = parseNumber(betInput.value);
             if(balance < bet) { showStatus("НЕДОСТАТОЧНО СРЕДСТВ!", "red"); return; }
+            if(isSpinning) return;
             isSpinning = true; balance -= bet; saveProgress(); updateUI(); payline.style.display='none'; statusEl.style.opacity='0';
             
             let res = [];
@@ -219,8 +218,11 @@
                 r.innerHTML = arr.map(s => s.type==='img'?`<div class="symbol ${Math.random()>0.5?'blur':''}"><img src="${s.val}"></div>`:`<div class="symbol ${Math.random()>0.5?'blur':''}">${s.val}</div>`).join('');
                 r.children[18].classList.remove('blur');
                 r.style.transition='none'; r.style.transform='translateY(0px)'; r.offsetHeight;
-                r.style.transition=`transform ${2+i*0.5}s cubic-bezier(0.15,0.1,0.25,1)`;
-                r.style.transform=`translateY(${-(18*SYMBOL_HEIGHT)+40}px)`;
+                
+                setTimeout(() => {
+                    r.style.transition=`transform ${2+i*0.5}s cubic-bezier(0.15,0.1,0.25,1)`;
+                    r.style.transform=`translateY(${-(18*SYMBOL_HEIGHT)+40}px)`;
+                }, 10);
             });
             setTimeout(() => { check(res, bet); isSpinning=false; }, 3500);
         }
@@ -236,26 +238,12 @@
 
             if(mul > 0) {
                 let win = Math.floor(bet * mul); balance += win; if(win>maxWin) maxWin=win;
-                saveProgress(); if(melCount===0) playWin(win);
+                saveProgress(); if(melCount===0) playWinCoins();
                 setTimeout(()=>showStatus(`+${formatNumber(win)}`, '#fff'), 1000);
             } else { showStatus("ПОПРОБУЙ ЕЩЕ", "#ccc"); }
             updateUI();
         }
 
-        function loadLocal() {
-            if(tg.CloudStorage) {
-                tg.CloudStorage.getItem('mel_bal', (e,v)=>{if(!e&&v)balance=parseInt(v);updateUI();});
-                tg.CloudStorage.getItem('mel_max', (e,v)=>{if(!e&&v)maxWin=parseInt(v);});
-            }
-            const lB = localStorage.getItem('mel_bal'); if(lB) balance = parseInt(lB);
-            const lM = localStorage.getItem('mel_max'); if(lM) maxWin = parseInt(lM);
-            if(balance < 10) { balance = 1000; saveProgress(); }
-        }
-        function saveProgress() {
-            localStorage.setItem('mel_bal', balance); localStorage.setItem('mel_max', maxWin);
-            if(tg.CloudStorage) { tg.CloudStorage.setItem('mel_bal', balance.toString()); tg.CloudStorage.setItem('mel_max', maxWin.toString()); }
-        }
-        
         function formatNumber(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
         function parseNumber(s) { return parseInt(s.replace(/,/g, '')) || 0; }
         function updateUI() { balanceEl.textContent = formatNumber(balance); }
@@ -264,7 +252,12 @@
         function showStatus(t,c='#fff') { statusEl.textContent=t; statusEl.style.color=c; statusEl.style.opacity='1'; setTimeout(()=>{if(!isSpinning)statusEl.style.opacity='0';},3000); }
         function resetBalance() { if(confirm("Сброс?")) { balance=1000; saveProgress(); updateUI(); } }
         
-        async function openStats() { document.getElementById('statsModal').style.display='flex'; renderLeaderboard(); }
+        async function openStats() {
+            document.getElementById('statsModal').style.display='flex';
+            lbList.innerHTML = '<div style="color:#fff;text-align:center">Загрузка...</div>';
+            const data = await fetchLeaderboard();
+            window.lbData = data; renderLeaderboard(data);
+        }
         function renderLeaderboard() {
             let list = [...FAKE_USERS];
             list.push({ name: (tg.initDataUnsafe?.user?.first_name || "ВЫ (YOU)"), balance: balance, maxWin: maxWin });
@@ -276,18 +269,16 @@
         function openInfo() { document.getElementById('infoModal').style.display='flex'; }
         function closeModal(id) { document.getElementById(id).style.display='none'; }
         function renderPayouts() { let h=''; SYMBOLS.forEach(s=>{ h+=`<div class="payout-row"><span class="pay-sym">${s.type==='img'?`<img src="${s.val}">`:`<span class="pay-sym-emoji">${s.val}</span>`}</span><span class="pay-val">x${MULTIPLIERS[s.id]}</span></div>`; }); payoutList.innerHTML=h; }
-        
-        function loadMuteState() { if(localStorage.getItem('mel_muted')==='true'){isMuted=true;soundBtn.textContent='🔇';soundBtn.classList.add('muted');} }
-        function toggleSound() { isMuted=!isMuted; localStorage.setItem('mel_muted',isMuted); soundBtn.textContent=isMuted?'🔇':'🔊'; soundBtn.classList.toggle('muted',isMuted); if(!isMuted && audioCtx.state==='suspended')audioCtx.resume(); }
 
         betInput.addEventListener('input', function() { this.value=formatNumber(parseInt(this.value.replace(/\D/g,''))||0); });
         betInput.addEventListener('change', function() { let v=parseNumber(this.value); if(v<10)v=10; if(v>balance)v=balance; this.value=formatNumber(v); });
         function adjustBet(a) { let c=parseNumber(betInput.value)||10; if(a==='min')c=10; if(a==='max')c=balance>0?balance:10; if(a==='double')c*=2; if(a==='half')c=Math.floor(c/2); if(c<10)c=10; if(c>balance)c=balance; betInput.value=formatNumber(c); }
 
-        // === AUDIO ===
         function preloadSounds() { for(const[k,u]of Object.entries(MELL_SOUNDS)) audioCache[k]=new Audio(u); audioCache['welcome']=new Audio(WELCOME_SOUND_URL); }
         function unlockAudio() { if(audioCtx.state==='suspended')audioCtx.resume(); if(!isMuted){const w=audioCache['welcome'];if(w){w.volume=0.5;w.play().catch(()=>{});}} }
         function playCachedSound(k) { if(isMuted)return; const a=audioCache[k]; if(a){a.currentTime=0;a.play().catch(()=>{});} }
+        function loadMuteState() { if(localStorage.getItem('mel_muted')==='true'){isMuted=true;soundBtn.textContent='🔇';soundBtn.classList.add('muted');} }
+        function toggleSound() { isMuted=!isMuted; localStorage.setItem('mel_muted',isMuted); soundBtn.textContent=isMuted?'🔇':'🔊'; soundBtn.classList.toggle('muted',isMuted); if(!isMuted && audioCtx.state==='suspended')audioCtx.resume(); }
         function createNoiseBuffer() { if(noiseBuffer)return; const b=audioCtx.sampleRate; noiseBuffer=audioCtx.createBuffer(1,b,b); const o=noiseBuffer.getChannelData(0); for(let i=0;i<b;i++)o[i]=Math.random()*2-1; }
         function playTone(f,t,d,v=0.1) { if(isMuted||!audioCtx)return; const o=audioCtx.createOscillator();const g=audioCtx.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d); }
         function playFilteredNoise(f,d,v) { if(isMuted||!audioCtx)return; createNoiseBuffer(); const n=audioCtx.createBufferSource();n.buffer=noiseBuffer;const fl=audioCtx.createBiquadFilter();fl.type='bandpass';fl.frequency.value=f;fl.Q.value=5;const g=audioCtx.createGain();g.gain.setValueAtTime(v,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+d);n.connect(fl);fl.connect(g);g.connect(audioCtx.destination);n.start(); }
@@ -304,6 +295,16 @@
         leverKnob.addEventListener('touchstart', e=>{if(isSpinning)return; isDrag=true; sY=e.touches[0].clientY;}, {passive:false});
         document.addEventListener('touchmove', e=>{if(!isDrag)return; e.preventDefault(); let a=Math.min(Math.max((e.touches[0].clientY-sY)*0.5,0),130); if(Math.abs(a-lA)>15){playRatchet();lA=a;} leverHandle.style.transform=`rotate(${a}deg)`;}, {passive:false});
         document.addEventListener('touchend', e=>{if(!isDrag)return; isDrag=false; if(e.changedTouches[0].clientY-sY>150){playClunk();setTimeout(spin,250);} resetLev();});
+
+        function loadLocal() {
+            if(tg.CloudStorage) {
+                tg.CloudStorage.getItem('mel_bal', (e,v)=>{if(!e&&v)balance=parseInt(v);updateUI();});
+                tg.CloudStorage.getItem('mel_max', (e,v)=>{if(!e&&v)maxWin=parseInt(v);});
+            }
+            const lB = localStorage.getItem('mel_bal'); if(lB) balance = parseInt(lB);
+            const lM = localStorage.getItem('mel_max'); if(lM) maxWin = parseInt(lM);
+            if(balance < 10) { balance = 1000; saveProgress(); }
+        }
 
         init();
     </script>
